@@ -1,0 +1,26 @@
+// error, cannot find exported declaration abbrev
+"use strict";
+"use hopscript";
+
+const CT = require( "contract.js" );
+const abbrev-js = require( "./index.js" );
+
+// file: undefined
+const __abbrev = (function() {
+  const monkeyPatch_ct = CT.CTFunction( CT.trueCT, [  ], CT.voidCT ).wrap( abbrev.monkeyPatch );
+  return {
+    monkeyPatch_ct: monkeyPatch_ct
+  };
+})();
+const __global = (function() {
+  const ArrayCT = CT.CTInterface( { sigCTundefined } );
+  const ReadonlyArrayCT = CT.CTInterface( { sigCTundefined } );
+  const ObjectCT = CT.CTInterface( { sigCTundefined } );
+  return {
+    ArrayCT: ArrayCT,
+    ReadonlyArrayCT: ReadonlyArrayCT,
+    ObjectCT: ObjectCT
+  };
+})();
+const abbrev_ct = CT.CTFunction( CT.trueCT, [ CT.CTArray( CT.stringCT ) ], CT.CTObject( { "abbreviation": { contract: CT.stringCT, index: "string"  } } ) ).wrap( abbrev );
+

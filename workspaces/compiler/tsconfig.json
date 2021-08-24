@@ -1,0 +1,15 @@
+{
+  "extends": "@tsconfig/node14",
+  "include": ["compiler.ts"],
+  "exclude": ["node_modules"],
+  "compilerOptions": {
+    "outDir": "dist",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "strictNullChecks": true,
+    "noImplicitThis": true,
+    "declaration": true,
+    "noImplicitAny": true
+  }
+}

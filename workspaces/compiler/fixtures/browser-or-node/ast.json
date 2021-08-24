@@ -1,0 +1,370 @@
+{
+  "type": "File",
+  "start": 0,
+  "end": 397,
+  "loc": {
+    "start": { "line": 1, "column": 0 },
+    "end": { "line": 10, "column": 0 }
+  },
+  "errors": [],
+  "program": {
+    "type": "Program",
+    "start": 0,
+    "end": 397,
+    "loc": {
+      "start": { "line": 1, "column": 0 },
+      "end": { "line": 10, "column": 0 }
+    },
+    "sourceType": "module",
+    "interpreter": null,
+    "body": [
+      {
+        "type": "ExportNamedDeclaration",
+        "start": 263,
+        "end": 295,
+        "loc": {
+          "start": { "line": 6, "column": 0 },
+          "end": { "line": 6, "column": 32 }
+        },
+        "leadingComments": [
+          {
+            "type": "CommentLine",
+            "value": " Type definitions for browser-or-node 1.3",
+            "start": 0,
+            "end": 43,
+            "loc": {
+              "start": { "line": 1, "column": 0 },
+              "end": { "line": 1, "column": 43 }
+            }
+          },
+          {
+            "type": "CommentLine",
+            "value": " Project: https://github.com/flexdinesh/browser-or-node",
+            "start": 44,
+            "end": 101,
+            "loc": {
+              "start": { "line": 2, "column": 0 },
+              "end": { "line": 2, "column": 57 }
+            }
+          },
+          {
+            "type": "CommentLine",
+            "value": " Definitions by: Jussi Kinnula <https://github.com/jussikinnula>",
+            "start": 102,
+            "end": 168,
+            "loc": {
+              "start": { "line": 3, "column": 0 },
+              "end": { "line": 3, "column": 66 }
+            }
+          },
+          {
+            "type": "CommentLine",
+            "value": " Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped",
+            "start": 169,
+            "end": 235,
+            "loc": {
+              "start": { "line": 4, "column": 0 },
+              "end": { "line": 4, "column": 66 }
+            }
+          },
+          {
+            "type": "CommentLine",
+            "value": " TypeScript Version: 2.8",
+            "start": 236,
+            "end": 262,
+            "loc": {
+              "start": { "line": 5, "column": 0 },
+              "end": { "line": 5, "column": 26 }
+            }
+          }
+        ],
+        "exportKind": "value",
+        "specifiers": [],
+        "source": null,
+        "declaration": {
+          "type": "VariableDeclaration",
+          "start": 270,
+          "end": 295,
+          "loc": {
+            "start": { "line": 6, "column": 7 },
+            "end": { "line": 6, "column": 32 }
+          },
+          "declarations": [
+            {
+              "type": "VariableDeclarator",
+              "start": 276,
+              "end": 294,
+              "loc": {
+                "start": { "line": 6, "column": 13 },
+                "end": { "line": 6, "column": 31 }
+              },
+              "id": {
+                "type": "Identifier",
+                "start": 276,
+                "end": 294,
+                "loc": {
+                  "start": { "line": 6, "column": 13 },
+                  "end": { "line": 6, "column": 31 },
+                  "identifierName": "isBrowser"
+                },
+                "name": "isBrowser",
+                "typeAnnotation": {
+                  "type": "TSTypeAnnotation",
+                  "start": 285,
+                  "end": 294,
+                  "loc": {
+                    "start": { "line": 6, "column": 22 },
+                    "end": { "line": 6, "column": 31 }
+                  },
+                  "typeAnnotation": {
+                    "type": "TSBooleanKeyword",
+                    "start": 287,
+                    "end": 294,
+                    "loc": {
+                      "start": { "line": 6, "column": 24 },
+                      "end": { "line": 6, "column": 31 }
+                    }
+                  }
+                }
+              },
+              "init": null
+            }
+          ],
+          "kind": "const"
+        }
+      },
+      {
+        "type": "ExportNamedDeclaration",
+        "start": 296,
+        "end": 330,
+        "loc": {
+          "start": { "line": 7, "column": 0 },
+          "end": { "line": 7, "column": 34 }
+        },
+        "exportKind": "value",
+        "specifiers": [],
+        "source": null,
+        "declaration": {
+          "type": "VariableDeclaration",
+          "start": 303,
+          "end": 330,
+          "loc": {
+            "start": { "line": 7, "column": 7 },
+            "end": { "line": 7, "column": 34 }
+          },
+          "declarations": [
+            {
+              "type": "VariableDeclarator",
+              "start": 309,
+              "end": 329,
+              "loc": {
+                "start": { "line": 7, "column": 13 },
+                "end": { "line": 7, "column": 33 }
+              },
+              "id": {
+                "type": "Identifier",
+                "start": 309,
+                "end": 329,
+                "loc": {
+                  "start": { "line": 7, "column": 13 },
+                  "end": { "line": 7, "column": 33 },
+                  "identifierName": "isWebWorker"
+                },
+                "name": "isWebWorker",
+                "typeAnnotation": {
+                  "type": "TSTypeAnnotation",
+                  "start": 320,
+                  "end": 329,
+                  "loc": {
+                    "start": { "line": 7, "column": 24 },
+                    "end": { "line": 7, "column": 33 }
+                  },
+                  "typeAnnotation": {
+                    "type": "TSBooleanKeyword",
+                    "start": 322,
+                    "end": 329,
+                    "loc": {
+                      "start": { "line": 7, "column": 26 },
+                      "end": { "line": 7, "column": 33 }
+                    }
+                  }
+                }
+              },
+              "init": null
+            }
+          ],
+          "kind": "const"
+        }
+      },
+      {
+        "type": "ExportNamedDeclaration",
+        "start": 331,
+        "end": 360,
+        "loc": {
+          "start": { "line": 8, "column": 0 },
+          "end": { "line": 8, "column": 29 }
+        },
+        "exportKind": "value",
+        "specifiers": [],
+        "source": null,
+        "declaration": {
+          "type": "VariableDeclaration",
+          "start": 338,
+          "end": 360,
+          "loc": {
+            "start": { "line": 8, "column": 7 },
+            "end": { "line": 8, "column": 29 }
+          },
+          "declarations": [
+            {
+              "type": "VariableDeclarator",
+              "start": 344,
+              "end": 359,
+              "loc": {
+                "start": { "line": 8, "column": 13 },
+                "end": { "line": 8, "column": 28 }
+              },
+              "id": {
+                "type": "Identifier",
+                "start": 344,
+                "end": 359,
+                "loc": {
+                  "start": { "line": 8, "column": 13 },
+                  "end": { "line": 8, "column": 28 },
+                  "identifierName": "isNode"
+                },
+                "name": "isNode",
+                "typeAnnotation": {
+                  "type": "TSTypeAnnotation",
+                  "start": 350,
+                  "end": 359,
+                  "loc": {
+                    "start": { "line": 8, "column": 19 },
+                    "end": { "line": 8, "column": 28 }
+                  },
+                  "typeAnnotation": {
+                    "type": "TSBooleanKeyword",
+                    "start": 352,
+                    "end": 359,
+                    "loc": {
+                      "start": { "line": 8, "column": 21 },
+                      "end": { "line": 8, "column": 28 }
+                    }
+                  }
+                }
+              },
+              "init": null
+            }
+          ],
+          "kind": "const"
+        }
+      },
+      {
+        "type": "ExportNamedDeclaration",
+        "start": 361,
+        "end": 396,
+        "loc": {
+          "start": { "line": 9, "column": 0 },
+          "end": { "line": 9, "column": 35 }
+        },
+        "exportKind": "value",
+        "specifiers": [],
+        "source": null,
+        "declaration": {
+          "type": "TSDeclareFunction",
+          "start": 368,
+          "end": 396,
+          "loc": {
+            "start": { "line": 9, "column": 7 },
+            "end": { "line": 9, "column": 35 }
+          },
+          "id": {
+            "type": "Identifier",
+            "start": 377,
+            "end": 384,
+            "loc": {
+              "start": { "line": 9, "column": 16 },
+              "end": { "line": 9, "column": 23 },
+              "identifierName": "isJsDom"
+            },
+            "name": "isJsDom"
+          },
+          "generator": false,
+          "async": false,
+          "params": [],
+          "returnType": {
+            "type": "TSTypeAnnotation",
+            "start": 386,
+            "end": 395,
+            "loc": {
+              "start": { "line": 9, "column": 25 },
+              "end": { "line": 9, "column": 34 }
+            },
+            "typeAnnotation": {
+              "type": "TSBooleanKeyword",
+              "start": 388,
+              "end": 395,
+              "loc": {
+                "start": { "line": 9, "column": 27 },
+                "end": { "line": 9, "column": 34 }
+              }
+            }
+          }
+        }
+      }
+    ],
+    "directives": []
+  },
+  "comments": [
+    {
+      "type": "CommentLine",
+      "value": " Type definitions for browser-or-node 1.3",
+      "start": 0,
+      "end": 43,
+      "loc": {
+        "start": { "line": 1, "column": 0 },
+        "end": { "line": 1, "column": 43 }
+      }
+    },
+    {
+      "type": "CommentLine",
+      "value": " Project: https://github.com/flexdinesh/browser-or-node",
+      "start": 44,
+      "end": 101,
+      "loc": {
+        "start": { "line": 2, "column": 0 },
+        "end": { "line": 2, "column": 57 }
+      }
+    },
+    {
+      "type": "CommentLine",
+      "value": " Definitions by: Jussi Kinnula <https://github.com/jussikinnula>",
+      "start": 102,
+      "end": 168,
+      "loc": {
+        "start": { "line": 3, "column": 0 },
+        "end": { "line": 3, "column": 66 }
+      }
+    },
+    {
+      "type": "CommentLine",
+      "value": " Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped",
+      "start": 169,
+      "end": 235,
+      "loc": {
+        "start": { "line": 4, "column": 0 },
+        "end": { "line": 4, "column": 66 }
+      }
+    },
+    {
+      "type": "CommentLine",
+      "value": " TypeScript Version: 2.8",
+      "start": 236,
+      "end": 262,
+      "loc": {
+        "start": { "line": 5, "column": 0 },
+        "end": { "line": 5, "column": 26 }
+      }
+    }
+  ]
+}

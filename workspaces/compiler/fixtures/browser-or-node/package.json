@@ -1,0 +1,5 @@
+{
+  "name": "browser-or-node",
+  "main": "index.js",
+  "type": "module"
+}

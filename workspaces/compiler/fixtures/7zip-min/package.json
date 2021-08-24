@@ -1,0 +1,5 @@
+{
+  "name": "7zip-min",
+  "main": "index.js",
+  "license": "ISC"
+}

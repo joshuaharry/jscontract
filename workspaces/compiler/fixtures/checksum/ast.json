@@ -1,0 +1,928 @@
+{
+  "type": "File",
+  "start": 0,
+  "end": 1376,
+  "loc": {
+    "start": { "line": 1, "column": 0 },
+    "end": { "line": 52, "column": 0 }
+  },
+  "errors": [],
+  "program": {
+    "type": "Program",
+    "start": 0,
+    "end": 1376,
+    "loc": {
+      "start": { "line": 1, "column": 0 },
+      "end": { "line": 52, "column": 0 }
+    },
+    "sourceType": "module",
+    "interpreter": null,
+    "body": [
+      {
+        "type": "TSModuleDeclaration",
+        "start": 224,
+        "end": 1111,
+        "loc": {
+          "start": { "line": 6, "column": 0 },
+          "end": { "line": 38, "column": 1 }
+        },
+        "leadingComments": [
+          {
+            "type": "CommentLine",
+            "value": " Type definitions for checksum 0.1.1",
+            "start": 0,
+            "end": 38,
+            "loc": {
+              "start": { "line": 1, "column": 0 },
+              "end": { "line": 1, "column": 38 }
+            }
+          },
+          {
+            "type": "CommentLine",
+            "value": " Project: https://github.com/dshaw/checksum",
+            "start": 39,
+            "end": 84,
+            "loc": {
+              "start": { "line": 2, "column": 0 },
+              "end": { "line": 2, "column": 45 }
+            }
+          },
+          {
+            "type": "CommentLine",
+            "value": " Definitions by: Rogier Schouten <https://github.com/rogierschouten>",
+            "start": 85,
+            "end": 155,
+            "loc": {
+              "start": { "line": 3, "column": 0 },
+              "end": { "line": 3, "column": 70 }
+            }
+          },
+          {
+            "type": "CommentLine",
+            "value": " Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped",
+            "start": 156,
+            "end": 222,
+            "loc": {
+              "start": { "line": 4, "column": 0 },
+              "end": { "line": 4, "column": 66 }
+            }
+          }
+        ],
+        "trailingComments": [
+          {
+            "type": "CommentBlock",
+            "value": "*\n * Generates a checksum for the given value\n * @param value    Any value\n * @param options    Allows to set the algorithm\n * @returns    Checksum\n ",
+            "start": 1113,
+            "end": 1266,
+            "loc": {
+              "start": { "line": 40, "column": 0 },
+              "end": { "line": 45, "column": 3 }
+            }
+          }
+        ],
+        "id": {
+          "type": "Identifier",
+          "start": 242,
+          "end": 250,
+          "loc": {
+            "start": { "line": 6, "column": 18 },
+            "end": { "line": 6, "column": 26 },
+            "identifierName": "checksum"
+          },
+          "name": "checksum"
+        },
+        "body": {
+          "type": "TSModuleBlock",
+          "start": 251,
+          "end": 1111,
+          "loc": {
+            "start": { "line": 6, "column": 27 },
+            "end": { "line": 38, "column": 1 }
+          },
+          "body": [
+            {
+              "type": "TSInterfaceDeclaration",
+              "start": 305,
+              "end": 470,
+              "loc": {
+                "start": { "line": 10, "column": 2 },
+                "end": { "line": 16, "column": 3 }
+              },
+              "leadingComments": [
+                {
+                  "type": "CommentBlock",
+                  "value": "*\n   * Options object for all functions\n   ",
+                  "start": 255,
+                  "end": 302,
+                  "loc": {
+                    "start": { "line": 7, "column": 2 },
+                    "end": { "line": 9, "column": 5 }
+                  }
+                }
+              ],
+              "trailingComments": [
+                {
+                  "type": "CommentBlock",
+                  "value": "*\n   * Generate the checksum for a file on disk\n   * @param filename    The file name\n   * @param callback    Callback which is called with the result or an error\n   ",
+                  "start": 474,
+                  "end": 644,
+                  "loc": {
+                    "start": { "line": 18, "column": 2 },
+                    "end": { "line": 22, "column": 5 }
+                  }
+                }
+              ],
+              "id": {
+                "type": "Identifier",
+                "start": 315,
+                "end": 330,
+                "loc": {
+                  "start": { "line": 10, "column": 12 },
+                  "end": { "line": 10, "column": 27 },
+                  "identifierName": "ChecksumOptions"
+                },
+                "name": "ChecksumOptions"
+              },
+              "body": {
+                "type": "TSInterfaceBody",
+                "start": 331,
+                "end": 470,
+                "loc": {
+                  "start": { "line": 10, "column": 28 },
+                  "end": { "line": 16, "column": 3 }
+                },
+                "body": [
+                  {
+                    "type": "TSPropertySignature",
+                    "start": 447,
+                    "end": 466,
+                    "loc": {
+                      "start": { "line": 15, "column": 4 },
+                      "end": { "line": 15, "column": 23 }
+                    },
+                    "leadingComments": [
+                      {
+                        "type": "CommentBlock",
+                        "value": "*\n     * Algorithm to use, default 'sha1'\n     * Can be 'sha1' or 'md5'  (see module 'crypto').\n     ",
+                        "start": 337,
+                        "end": 442,
+                        "loc": {
+                          "start": { "line": 11, "column": 4 },
+                          "end": { "line": 14, "column": 7 }
+                        }
+                      }
+                    ],
+                    "key": {
+                      "type": "Identifier",
+                      "start": 447,
+                      "end": 456,
+                      "loc": {
+                        "start": { "line": 15, "column": 4 },
+                        "end": { "line": 15, "column": 13 },
+                        "identifierName": "algorithm"
+                      },
+                      "name": "algorithm"
+                    },
+                    "computed": false,
+                    "optional": true,
+                    "typeAnnotation": {
+                      "type": "TSTypeAnnotation",
+                      "start": 457,
+                      "end": 465,
+                      "loc": {
+                        "start": { "line": 15, "column": 14 },
+                        "end": { "line": 15, "column": 22 }
+                      },
+                      "typeAnnotation": {
+                        "type": "TSStringKeyword",
+                        "start": 459,
+                        "end": 465,
+                        "loc": {
+                          "start": { "line": 15, "column": 16 },
+                          "end": { "line": 15, "column": 22 }
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "type": "TSDeclareFunction",
+              "start": 647,
+              "end": 745,
+              "loc": {
+                "start": { "line": 23, "column": 2 },
+                "end": { "line": 26, "column": 10 }
+              },
+              "leadingComments": [
+                {
+                  "type": "CommentBlock",
+                  "value": "*\n   * Generate the checksum for a file on disk\n   * @param filename    The file name\n   * @param callback    Callback which is called with the result or an error\n   ",
+                  "start": 474,
+                  "end": 644,
+                  "loc": {
+                    "start": { "line": 18, "column": 2 },
+                    "end": { "line": 22, "column": 5 }
+                  }
+                }
+              ],
+              "trailingComments": [
+                {
+                  "type": "CommentBlock",
+                  "value": "*\n   * Generate the checksum for a file on disk\n   * @param filename    The file name\n   * @param options    Options object to indicate hash algo\n   * @param callback    Callback which is called with the result or an error\n   ",
+                  "start": 748,
+                  "end": 978,
+                  "loc": {
+                    "start": { "line": 27, "column": 2 },
+                    "end": { "line": 32, "column": 5 }
+                  }
+                }
+              ],
+              "id": {
+                "type": "Identifier",
+                "start": 656,
+                "end": 660,
+                "loc": {
+                  "start": { "line": 23, "column": 11 },
+                  "end": { "line": 23, "column": 15 },
+                  "identifierName": "file"
+                },
+                "name": "file"
+              },
+              "generator": false,
+              "async": false,
+              "params": [
+                {
+                  "type": "Identifier",
+                  "start": 666,
+                  "end": 682,
+                  "loc": {
+                    "start": { "line": 24, "column": 4 },
+                    "end": { "line": 24, "column": 20 },
+                    "identifierName": "filename"
+                  },
+                  "name": "filename",
+                  "typeAnnotation": {
+                    "type": "TSTypeAnnotation",
+                    "start": 674,
+                    "end": 682,
+                    "loc": {
+                      "start": { "line": 24, "column": 12 },
+                      "end": { "line": 24, "column": 20 }
+                    },
+                    "typeAnnotation": {
+                      "type": "TSStringKeyword",
+                      "start": 676,
+                      "end": 682,
+                      "loc": {
+                        "start": { "line": 24, "column": 14 },
+                        "end": { "line": 24, "column": 20 }
+                      }
+                    }
+                  }
+                },
+                {
+                  "type": "Identifier",
+                  "start": 688,
+                  "end": 734,
+                  "loc": {
+                    "start": { "line": 25, "column": 4 },
+                    "end": { "line": 25, "column": 50 },
+                    "identifierName": "callback"
+                  },
+                  "name": "callback",
+                  "typeAnnotation": {
+                    "type": "TSTypeAnnotation",
+                    "start": 696,
+                    "end": 734,
+                    "loc": {
+                      "start": { "line": 25, "column": 12 },
+                      "end": { "line": 25, "column": 50 }
+                    },
+                    "typeAnnotation": {
+                      "type": "TSFunctionType",
+                      "start": 698,
+                      "end": 734,
+                      "loc": {
+                        "start": { "line": 25, "column": 14 },
+                        "end": { "line": 25, "column": 50 }
+                      },
+                      "parameters": [
+                        {
+                          "type": "Identifier",
+                          "start": 699,
+                          "end": 711,
+                          "loc": {
+                            "start": { "line": 25, "column": 15 },
+                            "end": { "line": 25, "column": 27 },
+                            "identifierName": "error"
+                          },
+                          "name": "error",
+                          "typeAnnotation": {
+                            "type": "TSTypeAnnotation",
+                            "start": 704,
+                            "end": 711,
+                            "loc": {
+                              "start": { "line": 25, "column": 20 },
+                              "end": { "line": 25, "column": 27 }
+                            },
+                            "typeAnnotation": {
+                              "type": "TSTypeReference",
+                              "start": 706,
+                              "end": 711,
+                              "loc": {
+                                "start": { "line": 25, "column": 22 },
+                                "end": { "line": 25, "column": 27 }
+                              },
+                              "typeName": {
+                                "type": "Identifier",
+                                "start": 706,
+                                "end": 711,
+                                "loc": {
+                                  "start": { "line": 25, "column": 22 },
+                                  "end": { "line": 25, "column": 27 },
+                                  "identifierName": "Error"
+                                },
+                                "name": "Error"
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "type": "Identifier",
+                          "start": 713,
+                          "end": 725,
+                          "loc": {
+                            "start": { "line": 25, "column": 29 },
+                            "end": { "line": 25, "column": 41 },
+                            "identifierName": "hash"
+                          },
+                          "name": "hash",
+                          "typeAnnotation": {
+                            "type": "TSTypeAnnotation",
+                            "start": 717,
+                            "end": 725,
+                            "loc": {
+                              "start": { "line": 25, "column": 33 },
+                              "end": { "line": 25, "column": 41 }
+                            },
+                            "typeAnnotation": {
+                              "type": "TSStringKeyword",
+                              "start": 719,
+                              "end": 725,
+                              "loc": {
+                                "start": { "line": 25, "column": 35 },
+                                "end": { "line": 25, "column": 41 }
+                              }
+                            }
+                          }
+                        }
+                      ],
+                      "typeAnnotation": {
+                        "type": "TSTypeAnnotation",
+                        "start": 727,
+                        "end": 734,
+                        "loc": {
+                          "start": { "line": 25, "column": 43 },
+                          "end": { "line": 25, "column": 50 }
+                        },
+                        "typeAnnotation": {
+                          "type": "TSVoidKeyword",
+                          "start": 730,
+                          "end": 734,
+                          "loc": {
+                            "start": { "line": 25, "column": 46 },
+                            "end": { "line": 25, "column": 50 }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              ],
+              "returnType": {
+                "type": "TSTypeAnnotation",
+                "start": 738,
+                "end": 744,
+                "loc": {
+                  "start": { "line": 26, "column": 3 },
+                  "end": { "line": 26, "column": 9 }
+                },
+                "typeAnnotation": {
+                  "type": "TSVoidKeyword",
+                  "start": 740,
+                  "end": 744,
+                  "loc": {
+                    "start": { "line": 26, "column": 5 },
+                    "end": { "line": 26, "column": 9 }
+                  }
+                }
+              }
+            },
+            {
+              "type": "TSDeclareFunction",
+              "start": 981,
+              "end": 1109,
+              "loc": {
+                "start": { "line": 33, "column": 2 },
+                "end": { "line": 37, "column": 10 }
+              },
+              "leadingComments": [
+                {
+                  "type": "CommentBlock",
+                  "value": "*\n   * Generate the checksum for a file on disk\n   * @param filename    The file name\n   * @param options    Options object to indicate hash algo\n   * @param callback    Callback which is called with the result or an error\n   ",
+                  "start": 748,
+                  "end": 978,
+                  "loc": {
+                    "start": { "line": 27, "column": 2 },
+                    "end": { "line": 32, "column": 5 }
+                  }
+                }
+              ],
+              "id": {
+                "type": "Identifier",
+                "start": 990,
+                "end": 994,
+                "loc": {
+                  "start": { "line": 33, "column": 11 },
+                  "end": { "line": 33, "column": 15 },
+                  "identifierName": "file"
+                },
+                "name": "file"
+              },
+              "generator": false,
+              "async": false,
+              "params": [
+                {
+                  "type": "Identifier",
+                  "start": 1000,
+                  "end": 1016,
+                  "loc": {
+                    "start": { "line": 34, "column": 4 },
+                    "end": { "line": 34, "column": 20 },
+                    "identifierName": "filename"
+                  },
+                  "name": "filename",
+                  "typeAnnotation": {
+                    "type": "TSTypeAnnotation",
+                    "start": 1008,
+                    "end": 1016,
+                    "loc": {
+                      "start": { "line": 34, "column": 12 },
+                      "end": { "line": 34, "column": 20 }
+                    },
+                    "typeAnnotation": {
+                      "type": "TSStringKeyword",
+                      "start": 1010,
+                      "end": 1016,
+                      "loc": {
+                        "start": { "line": 34, "column": 14 },
+                        "end": { "line": 34, "column": 20 }
+                      }
+                    }
+                  }
+                },
+                {
+                  "type": "Identifier",
+                  "start": 1022,
+                  "end": 1046,
+                  "loc": {
+                    "start": { "line": 35, "column": 4 },
+                    "end": { "line": 35, "column": 28 },
+                    "identifierName": "options"
+                  },
+                  "name": "options",
+                  "typeAnnotation": {
+                    "type": "TSTypeAnnotation",
+                    "start": 1029,
+                    "end": 1046,
+                    "loc": {
+                      "start": { "line": 35, "column": 11 },
+                      "end": { "line": 35, "column": 28 }
+                    },
+                    "typeAnnotation": {
+                      "type": "TSTypeReference",
+                      "start": 1031,
+                      "end": 1046,
+                      "loc": {
+                        "start": { "line": 35, "column": 13 },
+                        "end": { "line": 35, "column": 28 }
+                      },
+                      "typeName": {
+                        "type": "Identifier",
+                        "start": 1031,
+                        "end": 1046,
+                        "loc": {
+                          "start": { "line": 35, "column": 13 },
+                          "end": { "line": 35, "column": 28 },
+                          "identifierName": "ChecksumOptions"
+                        },
+                        "name": "ChecksumOptions"
+                      }
+                    }
+                  }
+                },
+                {
+                  "type": "Identifier",
+                  "start": 1052,
+                  "end": 1098,
+                  "loc": {
+                    "start": { "line": 36, "column": 4 },
+                    "end": { "line": 36, "column": 50 },
+                    "identifierName": "callback"
+                  },
+                  "name": "callback",
+                  "typeAnnotation": {
+                    "type": "TSTypeAnnotation",
+                    "start": 1060,
+                    "end": 1098,
+                    "loc": {
+                      "start": { "line": 36, "column": 12 },
+                      "end": { "line": 36, "column": 50 }
+                    },
+                    "typeAnnotation": {
+                      "type": "TSFunctionType",
+                      "start": 1062,
+                      "end": 1098,
+                      "loc": {
+                        "start": { "line": 36, "column": 14 },
+                        "end": { "line": 36, "column": 50 }
+                      },
+                      "parameters": [
+                        {
+                          "type": "Identifier",
+                          "start": 1063,
+                          "end": 1075,
+                          "loc": {
+                            "start": { "line": 36, "column": 15 },
+                            "end": { "line": 36, "column": 27 },
+                            "identifierName": "error"
+                          },
+                          "name": "error",
+                          "typeAnnotation": {
+                            "type": "TSTypeAnnotation",
+                            "start": 1068,
+                            "end": 1075,
+                            "loc": {
+                              "start": { "line": 36, "column": 20 },
+                              "end": { "line": 36, "column": 27 }
+                            },
+                            "typeAnnotation": {
+                              "type": "TSTypeReference",
+                              "start": 1070,
+                              "end": 1075,
+                              "loc": {
+                                "start": { "line": 36, "column": 22 },
+                                "end": { "line": 36, "column": 27 }
+                              },
+                              "typeName": {
+                                "type": "Identifier",
+                                "start": 1070,
+                                "end": 1075,
+                                "loc": {
+                                  "start": { "line": 36, "column": 22 },
+                                  "end": { "line": 36, "column": 27 },
+                                  "identifierName": "Error"
+                                },
+                                "name": "Error"
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "type": "Identifier",
+                          "start": 1077,
+                          "end": 1089,
+                          "loc": {
+                            "start": { "line": 36, "column": 29 },
+                            "end": { "line": 36, "column": 41 },
+                            "identifierName": "hash"
+                          },
+                          "name": "hash",
+                          "typeAnnotation": {
+                            "type": "TSTypeAnnotation",
+                            "start": 1081,
+                            "end": 1089,
+                            "loc": {
+                              "start": { "line": 36, "column": 33 },
+                              "end": { "line": 36, "column": 41 }
+                            },
+                            "typeAnnotation": {
+                              "type": "TSStringKeyword",
+                              "start": 1083,
+                              "end": 1089,
+                              "loc": {
+                                "start": { "line": 36, "column": 35 },
+                                "end": { "line": 36, "column": 41 }
+                              }
+                            }
+                          }
+                        }
+                      ],
+                      "typeAnnotation": {
+                        "type": "TSTypeAnnotation",
+                        "start": 1091,
+                        "end": 1098,
+                        "loc": {
+                          "start": { "line": 36, "column": 43 },
+                          "end": { "line": 36, "column": 50 }
+                        },
+                        "typeAnnotation": {
+                          "type": "TSVoidKeyword",
+                          "start": 1094,
+                          "end": 1098,
+                          "loc": {
+                            "start": { "line": 36, "column": 46 },
+                            "end": { "line": 36, "column": 50 }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              ],
+              "returnType": {
+                "type": "TSTypeAnnotation",
+                "start": 1102,
+                "end": 1108,
+                "loc": {
+                  "start": { "line": 37, "column": 3 },
+                  "end": { "line": 37, "column": 9 }
+                },
+                "typeAnnotation": {
+                  "type": "TSVoidKeyword",
+                  "start": 1104,
+                  "end": 1108,
+                  "loc": {
+                    "start": { "line": 37, "column": 5 },
+                    "end": { "line": 37, "column": 9 }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "declare": true
+      },
+      {
+        "type": "TSDeclareFunction",
+        "start": 1267,
+        "end": 1355,
+        "loc": {
+          "start": { "line": 46, "column": 0 },
+          "end": { "line": 49, "column": 10 }
+        },
+        "leadingComments": [
+          {
+            "type": "CommentBlock",
+            "value": "*\n * Generates a checksum for the given value\n * @param value    Any value\n * @param options    Allows to set the algorithm\n * @returns    Checksum\n ",
+            "start": 1113,
+            "end": 1266,
+            "loc": {
+              "start": { "line": 40, "column": 0 },
+              "end": { "line": 45, "column": 3 }
+            }
+          }
+        ],
+        "declare": true,
+        "id": {
+          "type": "Identifier",
+          "start": 1284,
+          "end": 1292,
+          "loc": {
+            "start": { "line": 46, "column": 17 },
+            "end": { "line": 46, "column": 25 },
+            "identifierName": "checksum"
+          },
+          "name": "checksum"
+        },
+        "generator": false,
+        "async": false,
+        "params": [
+          {
+            "type": "Identifier",
+            "start": 1296,
+            "end": 1306,
+            "loc": {
+              "start": { "line": 47, "column": 2 },
+              "end": { "line": 47, "column": 12 },
+              "identifierName": "value"
+            },
+            "name": "value",
+            "typeAnnotation": {
+              "type": "TSTypeAnnotation",
+              "start": 1301,
+              "end": 1306,
+              "loc": {
+                "start": { "line": 47, "column": 7 },
+                "end": { "line": 47, "column": 12 }
+              },
+              "typeAnnotation": {
+                "type": "TSAnyKeyword",
+                "start": 1303,
+                "end": 1306,
+                "loc": {
+                  "start": { "line": 47, "column": 9 },
+                  "end": { "line": 47, "column": 12 }
+                }
+              }
+            }
+          },
+          {
+            "type": "Identifier",
+            "start": 1310,
+            "end": 1344,
+            "loc": {
+              "start": { "line": 48, "column": 2 },
+              "end": { "line": 48, "column": 36 },
+              "identifierName": "options"
+            },
+            "name": "options",
+            "optional": true,
+            "typeAnnotation": {
+              "type": "TSTypeAnnotation",
+              "start": 1318,
+              "end": 1344,
+              "loc": {
+                "start": { "line": 48, "column": 10 },
+                "end": { "line": 48, "column": 36 }
+              },
+              "typeAnnotation": {
+                "type": "TSTypeReference",
+                "start": 1320,
+                "end": 1344,
+                "loc": {
+                  "start": { "line": 48, "column": 12 },
+                  "end": { "line": 48, "column": 36 }
+                },
+                "typeName": {
+                  "type": "TSQualifiedName",
+                  "start": 1320,
+                  "end": 1344,
+                  "loc": {
+                    "start": { "line": 48, "column": 12 },
+                    "end": { "line": 48, "column": 36 }
+                  },
+                  "left": {
+                    "type": "Identifier",
+                    "start": 1320,
+                    "end": 1328,
+                    "loc": {
+                      "start": { "line": 48, "column": 12 },
+                      "end": { "line": 48, "column": 20 },
+                      "identifierName": "checksum"
+                    },
+                    "name": "checksum"
+                  },
+                  "right": {
+                    "type": "Identifier",
+                    "start": 1329,
+                    "end": 1344,
+                    "loc": {
+                      "start": { "line": 48, "column": 21 },
+                      "end": { "line": 48, "column": 36 },
+                      "identifierName": "ChecksumOptions"
+                    },
+                    "name": "ChecksumOptions"
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "returnType": {
+          "type": "TSTypeAnnotation",
+          "start": 1346,
+          "end": 1354,
+          "loc": {
+            "start": { "line": 49, "column": 1 },
+            "end": { "line": 49, "column": 9 }
+          },
+          "typeAnnotation": {
+            "type": "TSStringKeyword",
+            "start": 1348,
+            "end": 1354,
+            "loc": {
+              "start": { "line": 49, "column": 3 },
+              "end": { "line": 49, "column": 9 }
+            }
+          }
+        }
+      },
+      {
+        "type": "TSExportAssignment",
+        "start": 1357,
+        "end": 1375,
+        "loc": {
+          "start": { "line": 51, "column": 0 },
+          "end": { "line": 51, "column": 18 }
+        },
+        "expression": {
+          "type": "Identifier",
+          "start": 1366,
+          "end": 1374,
+          "loc": {
+            "start": { "line": 51, "column": 9 },
+            "end": { "line": 51, "column": 17 },
+            "identifierName": "checksum"
+          },
+          "name": "checksum"
+        }
+      }
+    ],
+    "directives": []
+  },
+  "comments": [
+    {
+      "type": "CommentLine",
+      "value": " Type definitions for checksum 0.1.1",
+      "start": 0,
+      "end": 38,
+      "loc": {
+        "start": { "line": 1, "column": 0 },
+        "end": { "line": 1, "column": 38 }
+      }
+    },
+    {
+      "type": "CommentLine",
+      "value": " Project: https://github.com/dshaw/checksum",
+      "start": 39,
+      "end": 84,
+      "loc": {
+        "start": { "line": 2, "column": 0 },
+        "end": { "line": 2, "column": 45 }
+      }
+    },
+    {
+      "type": "CommentLine",
+      "value": " Definitions by: Rogier Schouten <https://github.com/rogierschouten>",
+      "start": 85,
+      "end": 155,
+      "loc": {
+        "start": { "line": 3, "column": 0 },
+        "end": { "line": 3, "column": 70 }
+      }
+    },
+    {
+      "type": "CommentLine",
+      "value": " Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped",
+      "start": 156,
+      "end": 222,
+      "loc": {
+        "start": { "line": 4, "column": 0 },
+        "end": { "line": 4, "column": 66 }
+      }
+    },
+    {
+      "type": "CommentBlock",
+      "value": "*\n   * Options object for all functions\n   ",
+      "start": 255,
+      "end": 302,
+      "loc": {
+        "start": { "line": 7, "column": 2 },
+        "end": { "line": 9, "column": 5 }
+      }
+    },
+    {
+      "type": "CommentBlock",
+      "value": "*\n     * Algorithm to use, default 'sha1'\n     * Can be 'sha1' or 'md5'  (see module 'crypto').\n     ",
+      "start": 337,
+      "end": 442,
+      "loc": {
+        "start": { "line": 11, "column": 4 },
+        "end": { "line": 14, "column": 7 }
+      }
+    },
+    {
+      "type": "CommentBlock",
+      "value": "*\n   * Generate the checksum for a file on disk\n   * @param filename    The file name\n   * @param callback    Callback which is called with the result or an error\n   ",
+      "start": 474,
+      "end": 644,
+      "loc": {
+        "start": { "line": 18, "column": 2 },
+        "end": { "line": 22, "column": 5 }
+      }
+    },
+    {
+      "type": "CommentBlock",
+      "value": "*\n   * Generate the checksum for a file on disk\n   * @param filename    The file name\n   * @param options    Options object to indicate hash algo\n   * @param callback    Callback which is called with the result or an error\n   ",
+      "start": 748,
+      "end": 978,
+      "loc": {
+        "start": { "line": 27, "column": 2 },
+        "end": { "line": 32, "column": 5 }
+      }
+    },
+    {
+      "type": "CommentBlock",
+      "value": "*\n * Generates a checksum for the given value\n * @param value    Any value\n * @param options    Allows to set the algorithm\n * @returns    Checksum\n ",
+      "start": 1113,
+      "end": 1266,
+      "loc": {
+        "start": { "line": 40, "column": 0 },
+        "end": { "line": 45, "column": 3 }
+      }
+    }
+  ]
+}

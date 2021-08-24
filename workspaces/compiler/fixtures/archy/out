@@ -1,0 +1,19 @@
+"use strict";
+"use hopscript";
+
+const CT = require( "contract.js" );
+const archy = require( "./index.js" );
+
+// file: undefined
+const __archy = (function() {
+  const DataCT = CT.CTRec( () => CT.CTInterface( { "label": CT.stringCT, "nodes": { contract: CT.CTArray( CT.CTOr( DataCT,CT.stringCT ) ), optional: true } } ) );
+  const OptionsCT = CT.CTInterface( { "unicode": { contract: CT.booleanCT, optional: true } } );
+  return {
+    DataCT: DataCT,
+    OptionsCT: OptionsCT
+  };
+})();
+const archy_ct = CT.CTFunction( CT.trueCT, [ __archy.DataCT,{ contract: CT.stringCT, optional: true },{ contract: __archy.OptionsCT, optional: true } ], CT.stringCT ).wrap( archy );
+
+// module exports
+module.exports = archy_ct;

@@ -1,0 +1,10 @@
+{
+  "name": "@jscontract/contract",
+  "version": "1.0.0",
+  "description": "Contract library for jscontract.",
+  "main": "contract.js",
+  "scripts": {
+    "test": "node contract.test.js"
+  },
+  "type": "commonjs"
+}

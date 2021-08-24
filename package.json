@@ -1,0 +1,8 @@
+{
+  "name": "@jscontract/root",
+  "version": "1.0.0",
+  "description": "Tooling related to JavaScript, types, and contracts.",
+  "workspaces": [
+    "workspaces/*"
+  ]
+}

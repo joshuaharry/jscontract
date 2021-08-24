@@ -1,0 +1,53 @@
+{
+  "name": "@jscontract/compiler",
+  "version": "1.0.0",
+  "description": "Compile TypeScript into JavaScript with contracts.",
+  "main": "dist/compiler.js",
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "test": "jest",
+    "test:watch": "jest --watch"
+  },
+  "dependencies": {
+    "@babel/core": "^7.13.15",
+    "@babel/generator": "^7.13.9",
+    "@babel/parser": "^7.13.15",
+    "@babel/template": "^7.12.13",
+    "@babel/traverse": "^7.13.15",
+    "@babel/types": "^7.13.14",
+    "@types/babel-core": "^6.25.6",
+    "prettier": "^2.2.1"
+  },
+  "devDependencies": {
+    "@tsconfig/node14": "^1.0.0",
+    "@types/babel-traverse": "^6.25.5",
+    "@types/jest": "^26.0.22",
+    "@types/prettier": "^2.2.3",
+    "@typescript-eslint/eslint-plugin": "^4.21.0",
+    "@typescript-eslint/parser": "^4.21.0",
+    "eslint": "^7.24.0",
+    "jest": "^26.6.3",
+    "ts-jest": "^26.5.4",
+    "typescript": "^4.2.4"
+  },
+  "eslintConfig": {
+    "root": true,
+    "parser": "@typescript-eslint/parser",
+    "plugins": [
+      "@typescript-eslint"
+    ],
+    "extends": [
+      "eslint:recommended",
+      "plugin:@typescript-eslint/recommended",
+      "prettier"
+    ],
+    "ignorePatterns": [
+      "src/fixtures/**"
+    ]
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node"
+  }
+}
