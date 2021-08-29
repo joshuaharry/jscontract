@@ -5,6 +5,7 @@ Tooling related to JavaScript, types, and contracts.
 You will need:
 - `bash`
 - `node`
+- `jq`
 - `git`
 
 Clone this repository onto your machine and run:
