@@ -226,4 +226,13 @@ describe("Our compiler", () => {
     const code = compile();
     expect(code).toMatch(`const OptionsContract = CT.CTRec`);
   });
+  test("Works with a package written in flow", () => {
+    gotoFixture("http-codes");
+    const code = compileContracts({
+      fileName: "http-codes_v1.x.x.js",
+      language: "flow",
+    });
+    expect(code).toMatch(`module.exports = CODESContract`);
+    expect(code).not.toMatch(`TOO_EARLY`);
+  });
 });

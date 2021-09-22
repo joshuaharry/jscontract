@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { parse } from "@babel/parser";
+import { parse, ParserPlugin } from "@babel/parser";
 import * as t from "@babel/types";
 import generate from "@babel/generator";
 import template from "@babel/template";
@@ -8,12 +8,17 @@ import prettier from "prettier";
 
 // Util {{{
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const readTypesFromFile = (): string =>
-  fs.readFileSync(path.join(process.cwd(), "index.d.ts"), "utf-8");
+const readTypesFromFile = (name: string): string =>
+  fs.readFileSync(path.join(process.cwd(), name), "utf-8");
 
-const getAst = (code: string): t.File =>
-  parse(code, {
-    plugins: ["typescript"],
+interface CompilerInput {
+  code: string;
+  language: ParserPlugin;
+}
+
+const getAst = (input: CompilerInput): t.File =>
+  parse(input.code, {
+    plugins: [input.language],
     sourceType: "module",
   });
 
@@ -94,6 +99,44 @@ const makeObjectLiteral = (lit: t.TSTypeLiteral): ObjectRecord => {
   }, {});
   return object;
 };
+
+const toFlowObject = (
+  acc: FlowObjectRecord,
+  el: t.ObjectTypeProperty | t.ObjectTypeSpreadProperty
+) => {
+  if (el.type === "ObjectTypeSpreadProperty") return acc;
+  if (el.key.type !== "Identifier") return acc;
+  return { ...acc, [el.key.name]: el.value };
+};
+
+const makeFlowObjectLiteral = (
+  types: Array<t.ObjectTypeProperty | t.ObjectTypeSpreadProperty>
+): FlowObjectSyntax => {
+  return { types: types.reduce(toFlowObject, {}) };
+};
+
+const extractFlowModuleName = (el: t.DeclareModuleExports): string => {
+  const {
+    typeAnnotation: { typeAnnotation },
+  } = el;
+  if (
+    typeAnnotation.type !== "GenericTypeAnnotation" ||
+    typeAnnotation?.id?.type !== "Identifier"
+  ) {
+    throw new Error("UNHANDLED FLOW TYPE");
+  }
+  return typeAnnotation.id.name;
+};
+
+const markExports = (l: ContractToken[]): ContractToken[] => {
+  const theExports = l.filter((token) => token.typeToMark !== null);
+  const theTypes = l.filter((token) => token.typeToMark === null);
+  return theTypes.map((type) => {
+    return theExports.some((exp) => exp.typeToMark === type.name)
+      ? { ...type, isMainExport: true }
+      : type;
+  });
+};
 // }}}
 
 // Map the AST into Contract Tokens {{{
@@ -141,9 +184,23 @@ type TypescriptType =
   | ObjectTypescriptType
   | FunctionTypescriptType;
 
+type FlowObjectRecord = Record<string, t.FlowType>;
+
+interface FlowObjectSyntax {
+  types: FlowObjectRecord;
+}
+
+interface ObjectFlowType {
+  hint: "flowObject";
+  syntax: FlowObjectSyntax;
+}
+
+type FlowType = ObjectFlowType;
+
 interface ContractToken {
   name: string;
-  type: TypescriptType | null;
+  typeToMark: string | null;
+  type: TypescriptType | FlowType | null;
   isSubExport: boolean;
   isMainExport: boolean;
   existsInJs: boolean;
@@ -274,12 +331,49 @@ const getTypeToken = (name: string, type: t.TSType): TypescriptType => {
   };
 };
 
+const getFlowTypeToken = (_: string, type: t.FlowType): FlowType => {
+  if (type.type === "ObjectTypeAnnotation")
+    return {
+      hint: "flowObject",
+      syntax: makeFlowObjectLiteral(type.properties),
+    };
+  throw new Error("UNHANDLED FLOW TYPE");
+};
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type TokenHandler = (el: any) => ContractToken[];
 
 const tokenMap: Record<string, TokenHandler> = {
   File(el: t.File): ContractToken[] {
+    // @ts-ignore
     return reduceTokens(el.program.body);
+  },
+  DeclareModule(el: t.DeclareModule) {
+    return reduceTokens(el.body.body);
+  },
+  DeclareModuleExports(el: t.DeclareModuleExports) {
+    return [
+      {
+        name: "NONE",
+        type: null,
+        isSubExport: false,
+        isMainExport: false,
+        existsInJs: false,
+        typeToMark: extractFlowModuleName(el),
+      },
+    ];
+  },
+  DeclareTypeAlias(el: t.DeclareTypeAlias) {
+    return [
+      {
+        name: el.id.name,
+        typeToMark: null,
+        type: getFlowTypeToken(el.id.name, el.right),
+        isSubExport: false,
+        isMainExport: false,
+        existsInJs: true,
+      },
+    ];
   },
   TSTypeAliasDeclaration(el: t.TSTypeAliasDeclaration) {
     const { name } = el.id;
@@ -290,6 +384,7 @@ const tokenMap: Record<string, TokenHandler> = {
       {
         name,
         type: getTypeToken(name, type),
+        typeToMark: null,
         isSubExport: false,
         isMainExport: false,
         existsInJs: false,
@@ -302,6 +397,7 @@ const tokenMap: Record<string, TokenHandler> = {
     return [
       {
         name,
+        typeToMark: null,
         type: null,
         isSubExport: false,
         isMainExport: true,
@@ -329,6 +425,7 @@ const tokenMap: Record<string, TokenHandler> = {
           hint: "object",
           syntax: { types, isRecursive: checkRecursive(name, types) },
         },
+        typeToMark: null,
         isSubExport: false,
         isMainExport: false,
         existsInJs: false,
@@ -346,6 +443,7 @@ const tokenMap: Record<string, TokenHandler> = {
     return [
       {
         name,
+        typeToMark: null,
         type: { hint: "function", syntax },
         isSubExport: false,
         isMainExport: false,
@@ -377,6 +475,7 @@ const tokenMap: Record<string, TokenHandler> = {
     return [
       {
         name,
+        typeToMark: null,
         type: getTypeToken(name, syntax),
         isSubExport: false,
         isMainExport: false,
@@ -389,8 +488,13 @@ const tokenMap: Record<string, TokenHandler> = {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const noToken = (_: t.Node) => [];
 
-const reduceTokens = (l: t.Statement[]) =>
-  l.reduce((acc: ContractToken[], el) => acc.concat(getContractTokens(el)), []);
+const reduceTokens = (l: t.Statement[]): ContractToken[] => {
+  const tokens = l.reduce(
+    (acc: ContractToken[], el) => acc.concat(getContractTokens(el)),
+    []
+  );
+  return markExports(tokens);
+};
 
 const getContractTokens = (el: t.Node): ContractToken[] => {
   const fn = tokenMap[el.type] || noToken;
@@ -897,17 +1001,33 @@ const getContractAst = (graph: ContractGraph): t.File => {
 };
 // }}}
 
-const compile = (code: string): string => {
-  const declarationAst = getAst(code);
+// Main {{{
+interface CompilerOptions {
+  fileName: string;
+  language: ParserPlugin;
+}
+
+const compile = (input: CompilerInput): string => {
+  const declarationAst = getAst(input);
   const tokens = getContractTokens(declarationAst);
   const graph = getContractGraph(tokens);
   const contractAst = getContractAst(graph);
   return getCode(contractAst);
 };
 
-const compileContracts = (): string => compile(readTypesFromFile());
+const DEFAULT_OPTIONS: CompilerOptions = {
+  fileName: "index.d.ts",
+  language: "typescript",
+};
+
+const compileContracts = (options: CompilerOptions = DEFAULT_OPTIONS): string =>
+  compile({
+    language: options.language,
+    code: readTypesFromFile(options.fileName),
+  });
 
 export default compileContracts;
+// }}}
 
 if (require.main === module) {
   fs.writeFileSync("./__COMPILATION_RESULT__.js", compileContracts());
