@@ -1,28 +1,17 @@
 # JSContract
 Tooling related to JavaScript, types, and contracts.
 
-# Running the System
-
-## External Dependencies
-You will need:
-- `bash` (or another POSIX shell symlinked to `/bin/sh`)
-- `node`
-- `jq`
-- `git`
-
-If you're on a Unixy system, most things should work out of the box.
-
 ## Getting Started
-Clone this repository onto your machine. Then, `cd` into it and run:
+To install all JavaScript dependencies for the compiler, clone this repository and run:
 
 ```sh
 npm install
 ```
 
-From there, you can run our system by doing:
+## Workspaces
+- See `./workspaces/contract` for all the code in our contract system
+- See `./workspaces/compiler` for all the code in our compiler
+- See `./workspaces/type-explorer` for all the code in our type exploration system
 
-```sh
-./workspaces/type-explorer/bin/ct $PACKAGE_NAME
-```
-
-Where `$PACKAGE_NAME` is a package on DefinitelyTyped you would like to test.
+## Type Explorer Documentation
+See `./workspaces/type-explorer/README.md` for more information about how to run the bugfinding script.
