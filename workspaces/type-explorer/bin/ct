@@ -197,4 +197,4 @@ do_contract() {
 }
 # }}}
 
-do_contract "$@";
+do_check "$@";

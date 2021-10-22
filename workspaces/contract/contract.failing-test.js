@@ -10,8 +10,8 @@ const CT = require("./contract.js");
 /*
  * Promise
  */
-// NB: this test case fails because we do not yet understand how to
-// add contracts to promises, so leave it at the end of the file
+// this test case fails because we do not yet understand how to
+// add contracts to promises
 assert.ok(
   (() => {
     function open(string) {

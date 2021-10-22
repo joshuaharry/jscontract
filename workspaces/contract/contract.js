@@ -627,7 +627,9 @@ function CTAnd(...args) {
               );
             }
           }
-          return new Proxy(value, handler);
+          if (value && typeof value === "object" || typeof value === "function")
+              return new Proxy(value, handler);
+          return value;
         });
       }
       return {
@@ -669,11 +671,58 @@ function CTOrExplicitChoice(lchoose, left, rchoose, right) {
   );
 }
 
-function CTOr(left, right) {
-  const lc = CTCoerce(left, "CTOr");
-  const rc = CTCoerce(right, "CTOr");
-
-  return CTOrExplicitChoice(lc.firstOrder, lc, rc.firstOrder, rc);
+function CTOr(...args)  {
+    const argcs = args.map((a) => CTCoerce(a, "CTOr"));
+    const or_first_order = (x) => {
+        for (let i = 0; i < argcs.length; ++i) {
+            if (argcs[i].firstOrder(x)) return true;
+        }
+        return false;
+    }
+    return new CT(
+        "CTOr",
+        or_first_order,
+        function (blame_object) {
+            function mkWrapper(blame_object, kt) {
+                function do_wrapping(target) {
+                    const blame_objects = pos_choice(blame_object, argcs.length);
+                    var wrapped_target = target;
+                    for (let i = 0; i < argcs.length; ++i) {
+                        const ei = argcs[i].wrapper(blame_objects[i]);
+                        wrapped_target = ei[kt].ctor(wrapped_target);
+                    }
+                    return wrapped_target;
+                }
+                const handler = {
+                    apply: function (target, self, target_args) {
+                        const wrapped_target = do_wrapping(target);
+                        // MS 30apr2021: is it correct not to apply any contract to self?
+                        return wrapped_target.apply(self, target_args);
+                    },
+                    get: function(target, prop, receiver) {
+                        const wrapped_target = do_wrapping(target);
+                        return wrapped_target[prop];
+                    }
+                };
+                return new CTWrapper(function (value) {
+                    if (! or_first_order(value) ) {
+                        signal_contract_violation(
+                            value,
+                            blame_object,
+                            "CTOr no arguments applied: " + value
+                        );
+                    }
+                    if (value && typeof value === "object" || typeof value === "function")
+                        return new Proxy(value, handler);
+                    return value;
+                });
+            }
+            return {
+                t: mkWrapper(blame_object, "t"),
+                f: mkWrapper(blame_swap(blame_object), "f"),
+            };
+        }
+    );
 }
 
 /*---------------------------------------------------------------------*/
@@ -820,11 +869,7 @@ function CTObject(ctfields) {
                 return cache;
               } else {
                 const targetProp = target[prop];
-                if (
-                  fields[prop] &&
-                  fields[prop].optional &&
-                  targetProp === undefined
-                ) {
+                if (fields[prop]?.optional && targetProp === undefined) {
                   return targetProp;
                 }
                 const cv = ct[kt].ctor(targetProp);
@@ -1004,6 +1049,20 @@ function neg_choice(blame_object, howmany) {
   }
   return blame_objects;
 }
+function pos_choice(blame_object, howmany) {
+  const blame_objects = [];
+  for (let i = 0; i < howmany; ++i) {
+    blame_objects[i] = {
+      pos: blame_object.pos,
+      neg: blame_object.neg,
+      dead: { dead: false },
+      neg_state: blame_object.neg_state,
+      pos_state: blame_objects,
+    };
+  }
+  return blame_objects;
+}
+
 function signal_contract_violation(value, blame_object, message) {
   if (typeof blame_object.dead === "boolean") {
     // regular contract violation, no and/or here

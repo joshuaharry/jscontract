@@ -589,6 +589,49 @@ assert.throws(
   "ctor.6"
 );
 
+assert.throws(
+    () => {
+        const f = CT.CTOr(
+            CT.CTFunction(true, [CT.isString], CT.isString),
+            CT.CTFunction(true, [CT.isNumber], CT.isNumber)
+        ).wrap((x) => "x");
+        f(3);
+    },
+    /blaming: neg/,
+    "ctor.7"
+)
+assert.ok(
+    (() => {
+        const f = CT.CTOr(
+            CT.CTFunction(true, [CT.isString], CT.isString),
+            CT.CTFunction(true, [CT.isString], CT.isNumber)
+        ).wrap((x) => "x");
+        return f("y") == "x";
+    })(),
+    "ctor.8"
+)
+assert.ok(
+  (() => {
+      CT.CTOr(CT.isString, CT.isNumber, CT.isBoolean).wrap("x");
+    return true;
+  })(),
+  "ctor.9a"
+);
+assert.ok(
+  (() => {
+      CT.CTOr(CT.isString, CT.isNumber, CT.isBoolean).wrap(11);
+    return true;
+  })(),
+  "ctor.9b"
+);
+assert.ok(
+  (() => {
+      CT.CTOr(CT.isString, CT.isNumber, CT.isBoolean).wrap(true);
+    return true;
+  })(),
+  "ctor.9c"
+);
+
 // check errors happen at the right time
 assert.throws(
   () => {
@@ -659,7 +702,7 @@ assert.throws(
     const o = person.wrap({ id: 23, name: "foo", firstname: "bar", alive: 23 });
     return o.id === 23 && o.name === "foo" && o.alive;
   },
-  /CTOr neither applied.*\n.*blaming: pos/,
+  /CTOr no arguments applied.*\n.*blaming: pos/,
   "ctobject.index"
 );
 assert.throws(
@@ -1128,6 +1171,7 @@ assert.throws(
   /Predicate `isBoolean' not satisfied for value `2'.*\n.*blaming: neg/,
   "ctand.6"
 );
+
 assert.ok(
   (() => {
     function even(x) {
@@ -1158,11 +1202,125 @@ assert.ok(
     function id(x) {
       return x;
     }
-    const f = ee_a_pp_or_oo_a_nn.wrap(id);
-    return 22 == f(22);
+    const f =  ee_a_pp_or_oo_a_nn.wrap(id);
+    return 21 == f(21);
   })(),
-  "ctand.7"
+  "ctand.7a"
 );
+
+assert.ok(
+  (() => {
+    function even(x) {
+      return x % 2 == 0;
+    }
+    function pos(x) {
+      return x > 0;
+    }
+    function odd(x) {
+      return x % 2 != 0;
+    }
+    function neg(x) {
+      return x < 0;
+    }
+    const even_to_even_and_pos_to_pos = CT.CTAnd(
+      CT.CTFunction(CT.trueCT, [even], even),
+      CT.CTFunction(CT.trueCT, [pos], pos)
+    );
+    const odd_to_odd_and_neg_to_neg = CT.CTAnd(
+      CT.CTFunction(CT.trueCT, [odd], odd),
+      CT.CTFunction(CT.trueCT, [neg], neg)
+    );
+    const ee_a_pp_or_oo_a_nn = CT.CTOr(
+      odd_to_odd_and_neg_to_neg,
+      even_to_even_and_pos_to_pos
+    );
+
+    function id(x) {
+      return x;
+    }
+    const f =  ee_a_pp_or_oo_a_nn.wrap(id);
+    return 21 == f(21);
+  })(),
+  "ctand.7b"
+);
+
+
+assert.throws(
+  () => {
+    function even(x) {
+      return x % 2 == 0;
+    }
+    function pos(x) {
+      return x > 0;
+    }
+    function odd(x) {
+      return x % 2 != 0;
+    }
+    function neg(x) {
+      return x < 0;
+    }
+    const even_to_even_and_pos_to_pos = CT.CTAnd(
+      CT.CTFunction(CT.trueCT, [even], even),
+      CT.CTFunction(CT.trueCT, [pos], pos)
+    );
+    const odd_to_odd_and_neg_to_neg = CT.CTAnd(
+      CT.CTFunction(CT.trueCT, [odd], odd),
+      CT.CTFunction(CT.trueCT, [neg], neg)
+    );
+    const ee_a_pp_or_oo_a_nn = CT.CTOr(
+      even_to_even_and_pos_to_pos,
+      odd_to_odd_and_neg_to_neg
+    );
+
+    function id(x) {
+      return x;
+    }
+    const f =  ee_a_pp_or_oo_a_nn.wrap(id);
+    return 22 == f(22);
+  },
+  /blaming: neg/,
+  "ctand.7c"
+);
+
+
+assert.throws(
+  () => {
+    function even(x) {
+      return x % 2 == 0;
+    }
+    function pos(x) {
+      return x > 0;
+    }
+    function odd(x) {
+      return x % 2 != 0;
+    }
+    function neg(x) {
+      return x < 0;
+    }
+    const even_to_even_and_pos_to_pos = CT.CTAnd(
+      CT.CTFunction(CT.trueCT, [even], even),
+      CT.CTFunction(CT.trueCT, [pos], pos)
+    );
+    const odd_to_odd_and_neg_to_neg = CT.CTAnd(
+      CT.CTFunction(CT.trueCT, [odd], odd),
+      CT.CTFunction(CT.trueCT, [neg], neg)
+    );
+    const ee_a_pp_or_oo_a_nn = CT.CTOr(
+      even_to_even_and_pos_to_pos,
+      odd_to_odd_and_neg_to_neg
+    );
+
+    function id(x) {
+      return x;
+    }
+    const f =  ee_a_pp_or_oo_a_nn.wrap(id);
+    return -21 == f(-21);
+  },
+  /blaming: neg/,
+  "ctand.7d"
+);
+
+
 assert.throws(
   () => {
     const c1 = CT.CTFunction(true, [CT.CTArray(CT.isString)], CT.isString);
@@ -1199,7 +1357,27 @@ assert.ok(
   })(),
   "ctand.9"
 );
-
+assert.ok(
+  (() => {
+    function even(x) {
+      return x % 2 == 0;
+    }
+    function pos(x) {
+      return x > 0;
+    }
+    function odd(x) {
+      return x % 2 != 0;
+    }
+    function neg(x) {
+      return x < 0;
+    }
+    const even_pos = CT.CTAnd(even, pos);
+    const odd_neg = CT.CTAnd(odd, neg);
+    return 22 == even_pos.wrap(22) &&
+           -3 == odd_neg.wrap(-3);
+  })(),
+  "ctand.10"
+)
 /*
  * Minor bugfixes
  */
