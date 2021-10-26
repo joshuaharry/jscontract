@@ -34,7 +34,7 @@ You should see an error that looks like:
 TypeError: Object mismatch, expecting "{set, has, get, swap, del}", got "{dict, set, has, get, swap, del}"
 ```
 
-If you see that message, then congratulations! The system is wroking properly on your machine.
+If you see that message, then congratulations! The system is working properly on your machine.
 
 ## Usage
 
