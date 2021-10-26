@@ -20,6 +20,7 @@
     "prettier": "^2.2.1"
   },
   "devDependencies": {
+    "@tsconfig/node12": "^1.0.9",
     "@tsconfig/node14": "^1.0.0",
     "@types/babel-traverse": "^6.25.5",
     "@types/jest": "^26.0.22",

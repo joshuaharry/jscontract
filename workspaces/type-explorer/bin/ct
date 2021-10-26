@@ -181,6 +181,7 @@ compile_contracts() {
 
 # Main Functions {{{ 
 do_check() {
+  clone_definitely_typed;
   check_type_complexity "$@";
   create_sandbox "$@";
   get_package "$@";
@@ -197,4 +198,4 @@ do_contract() {
 }
 # }}}
 
-do_check "$@";
+do_contract "$@";

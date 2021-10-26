@@ -59,14 +59,16 @@ const isLiteralObject = (literal) => {
         member.type === "TSPropertySignature");
 };
 const addIndexSignature = (acc, el) => {
+    var _a;
     const { name } = el.parameters[0];
-    const type = el.typeAnnotation?.typeAnnotation || t.tsAnyKeyword();
+    const type = ((_a = el.typeAnnotation) === null || _a === void 0 ? void 0 : _a.typeAnnotation) || t.tsAnyKeyword();
     return { ...acc, [name]: { type, isIndex: true, isOptional: false } };
 };
 const addPropertySignature = (acc, el) => {
+    var _a;
     if (el.key.type !== "Identifier")
         return acc;
-    const type = el?.typeAnnotation?.typeAnnotation;
+    const type = (_a = el === null || el === void 0 ? void 0 : el.typeAnnotation) === null || _a === void 0 ? void 0 : _a.typeAnnotation;
     if (!type)
         return acc;
     return {
@@ -95,9 +97,10 @@ const makeFlowObjectLiteral = (types) => {
     return { types: types.reduce(toFlowObject, {}) };
 };
 const extractFlowModuleName = (el) => {
+    var _a;
     const { typeAnnotation: { typeAnnotation }, } = el;
     if (typeAnnotation.type !== "GenericTypeAnnotation" ||
-        typeAnnotation?.id?.type !== "Identifier") {
+        ((_a = typeAnnotation === null || typeAnnotation === void 0 ? void 0 : typeAnnotation.id) === null || _a === void 0 ? void 0 : _a.type) !== "Identifier") {
         throw new Error("UNHANDLED FLOW TYPE");
     }
     return typeAnnotation.id.name;
@@ -111,10 +114,13 @@ const markExports = (l) => {
             : type;
     });
 };
-const getParameterType = (el) => el.type !== "TSParameterProperty" &&
-    el?.typeAnnotation?.type === "TSTypeAnnotation"
-    ? el.typeAnnotation.typeAnnotation
-    : t.tsAnyKeyword();
+const getParameterType = (el) => {
+    var _a;
+    return el.type !== "TSParameterProperty" &&
+        ((_a = el === null || el === void 0 ? void 0 : el.typeAnnotation) === null || _a === void 0 ? void 0 : _a.type) === "TSTypeAnnotation"
+        ? el.typeAnnotation.typeAnnotation
+        : t.tsAnyKeyword();
+};
 const getParameterTypes = (els) => els.map((el) => {
     return {
         type: getParameterType(el),
@@ -123,7 +129,8 @@ const getParameterTypes = (els) => els.map((el) => {
     };
 });
 const accumulateType = (acc, el, type) => {
-    if (!type || el?.key?.type !== "Identifier")
+    var _a;
+    if (!type || ((_a = el === null || el === void 0 ? void 0 : el.key) === null || _a === void 0 ? void 0 : _a.type) !== "Identifier")
         return acc;
     const { name } = el.key;
     return {
@@ -144,7 +151,8 @@ const coerceMethodSignature = (el) => ({
 });
 const childMappers = {
     TSPropertySignature(acc, el) {
-        const type = el?.typeAnnotation?.typeAnnotation;
+        var _a;
+        const type = (_a = el === null || el === void 0 ? void 0 : el.typeAnnotation) === null || _a === void 0 ? void 0 : _a.typeAnnotation;
         return accumulateType(acc, el, type);
     },
     TSMethodSignature(acc, el) {
@@ -182,7 +190,7 @@ const typeContainsName = (name, chunk) => {
                 return type.types.some((type) => loop(type) === true);
             },
         };
-        const fn = loopMap[type?.type];
+        const fn = loopMap[type === null || type === void 0 ? void 0 : type.type];
         return fn ? fn(type) : false;
     };
     return loop(chunk.type);
@@ -306,10 +314,11 @@ const tokenMap = {
         ];
     },
     TSDeclareFunction(el) {
-        const name = el.id?.name;
+        var _a, _b;
+        const name = (_a = el.id) === null || _a === void 0 ? void 0 : _a.name;
         if (!name)
             return [];
-        if (el?.returnType?.type !== "TSTypeAnnotation")
+        if (((_b = el === null || el === void 0 ? void 0 : el.returnType) === null || _b === void 0 ? void 0 : _b.type) !== "TSTypeAnnotation")
             return [];
         const syntax = {
             range: el.returnType.typeAnnotation,
@@ -349,8 +358,9 @@ const tokenMap = {
         return getContractTokens(el.id);
     },
     Identifier(el) {
+        var _a;
         const { name } = el;
-        if (el?.typeAnnotation?.type !== "TSTypeAnnotation")
+        if (((_a = el === null || el === void 0 ? void 0 : el.typeAnnotation) === null || _a === void 0 ? void 0 : _a.type) !== "TSTypeAnnotation")
             return [];
         const syntax = el.typeAnnotation.typeAnnotation;
         return [
@@ -526,7 +536,8 @@ const nameReference = (refName) => {
     });
 };
 const extractRefParams = (ref) => {
-    const params = ref?.typeParameters?.params;
+    var _a;
+    const params = (_a = ref === null || ref === void 0 ? void 0 : ref.typeParameters) === null || _a === void 0 ? void 0 : _a.params;
     if (!Array.isArray(params)) {
         throw new Error(`Could not unwrap parameters on ${ref}!`);
     }
@@ -621,7 +632,8 @@ const makeReduceNode = (env) => {
             });
         },
         TSTypeReference(ref) {
-            if (ref?.typeName?.type !== "Identifier")
+            var _a;
+            if (((_a = ref === null || ref === void 0 ? void 0 : ref.typeName) === null || _a === void 0 ? void 0 : _a.type) !== "Identifier")
                 return handleUnknownReference(ref);
             const { name } = ref.typeName;
             const refFn = typeRefMap[name] || handleUnknownReference;
@@ -636,9 +648,10 @@ const makeReduceNode = (env) => {
             });
         },
         TSFunctionType(type) {
+            var _a;
             return mapFunction({
                 domain: getParameterTypes(type.parameters),
-                range: type.typeAnnotation?.typeAnnotation || t.tsAnyKeyword(),
+                range: ((_a = type.typeAnnotation) === null || _a === void 0 ? void 0 : _a.typeAnnotation) || t.tsAnyKeyword(),
             });
         },
         TSTypeOperator(type) {
