@@ -10,7 +10,7 @@ You will need:
 
 - A Unix based operating system (e.g., Mac OS, Linux, or the WSL)
 - Bash
-- node.js
+- node.js v12+
 - npm v7+
 - [jq](https://stedolan.github.io/jq/)
 
@@ -22,7 +22,7 @@ Please do not change the location of ct, as **moving ct outside the bin folder w
 
 ### Health Check
 
-If the system is working correctly on your computer, when you run:
+To make sure that the system is working correctly on your computer, first ensure that the last line of the `./bin/ct` script is "do_contract \"$@\"". From there, when you run:
 
 ```sh
 ct caseless
@@ -34,7 +34,7 @@ You should see an error that looks like:
 TypeError: Object mismatch, expecting "{set, has, get, swap, del}", got "{dict, set, has, get, swap, del}"
 ```
 
-If you see that message, then congratulations! The system is working properly on your machine.
+If that message appears, then congratulations! The system is working properly on your machine.
 
 ## Usage
 
