@@ -3,6 +3,7 @@
 
 ### custom ###
 workspaces/type-explorer/DefinitelyTyped/
+workspaces/type-explorer/FlowTyped/
 workspaces/type-explorer/results/
 workspaces/type-explorer/sandbox/
 *~

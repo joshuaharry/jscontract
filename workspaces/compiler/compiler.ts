@@ -1030,5 +1030,16 @@ export default compileContracts;
 // }}}
 
 if (require.main === module) {
-  fs.writeFileSync("./__COMPILATION_RESULT__.js", compileContracts());
+  if (process.argv.slice(2).length === 0) {
+    fs.writeFileSync("./__COMPILATION_RESULT__.js", compileContracts());
+  } else {
+    const flowArg = process.argv[process.argv.length - 1];
+    fs.writeFileSync(
+      "./__COMPILATION_RESULT__.js",
+      compileContracts({
+        fileName: flowArg,
+        language: "flow",
+      })
+    );
+  }
 }

@@ -1,0 +1,24 @@
+#!/usr/bin/env node
+const path = require("path");
+const fs = require("fs");
+
+const joinLast = (folder, list) => path.join(folder, list[list.length - 1]);
+
+const FLOW_TYPED_PATH = path.resolve(__dirname, "..", "FlowTyped");
+const PACKAGE_NAME = process.argv[process.argv.length - 1];
+const TYPE_DIRECTORY = path.join(FLOW_TYPED_PATH, "definitions", "npm");
+
+const folders = fs.readdirSync(TYPE_DIRECTORY);
+
+const candidates = folders.filter((folder) =>
+  folder.startsWith(`${PACKAGE_NAME}_`)
+);
+const FOLDER_WITH_VERSIONS = joinLast(TYPE_DIRECTORY, candidates);
+
+const typeOptions = fs
+  .readdirSync(FOLDER_WITH_VERSIONS)
+  .filter((fileName) => !fileName.startsWith("test"));
+
+const FOLDER_WITH_TYPES = joinLast(FOLDER_WITH_VERSIONS, typeOptions);
+const files = fs.readdirSync(FOLDER_WITH_TYPES);
+process.stdout.write(joinLast(FOLDER_WITH_TYPES, files));

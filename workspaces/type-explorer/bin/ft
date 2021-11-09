@@ -1,0 +1,202 @@
+#!/usr/bin/env bash
+
+realpath() {
+    [[ $1 = /* ]] && echo "$1" || echo "$PWD/${1#./}"
+}
+
+# Toplevel paths
+TOPLEVEL_DIR="$(dirname "$(realpath "$(dirname "${BASH_SOURCE[0]}")")")"
+
+# Source code messages {{{
+succeed_contract() {
+  printf "ECONTRACTSUCCESS: We compiled this project into contracts, and the tests all passed.\n"
+  exit 0;
+}
+
+succeed_check() {
+  printf "ECHECKSUCCESS: Our compiler can target this package."
+  exit 0;
+}
+
+fail_sandbox() {
+  printf "%s" "ESANDBOX: Could not create sandbox.\n";
+  exit 1
+}
+
+fail_source_code() {
+  printf "ESOURCECODE: Could not download the source code for %s\n" "$1"
+  exit 2
+}
+
+fail_no_tests() {
+  printf "ENOTESTS: Could not find tests for %s\n" "$1"
+  exit 3
+}
+
+fail_bad_tests() {
+  printf "EBADTESTS: The tests for this package fail even without compiling contracts.\n"
+  exit 4
+}
+
+contract_failure() {
+  printf "ECONTRACTFAILURE: We compiled the project into contracts, and some of the tests failed.\n";
+  exit 5
+}
+
+fail_types_missing() {
+  printf "ETYPESMISSING: The types for this package are missing.\n";
+  exit 6
+}
+
+fail_type_complexity() {
+  printf "ETYPECOMPLEXITY: The types for this package are too long.\n";
+  exit 7
+}
+
+fail_no_main() {
+  printf "ENOMAIN: This package has no main entry.\n"; 
+  exit 8
+}
+
+fail_missing_main() {
+  printf "EMISSINGMAIN: This package has a main entry, but we can't find it.\n";
+  exit 9
+}
+# }}}
+
+# Helpers {{{
+disable_eslint() {
+  cat << EOF > "$PWD"/.eslintignore
+**/*.js
+EOF
+}
+
+clone_flow_typed() {
+  if [ ! -d "$TOPLEVEL_DIR/FlowTyped" ]; then
+    git clone https://github.com/flow-typed/flow-typed "$TOPLEVEL_DIR"/FlowTyped
+  fi
+}
+
+run_compiler() {
+  node "$(dirname "$TOPLEVEL_DIR")"/compiler/dist/compiler.js "$1"
+}
+
+create_sandbox() {
+  rm -rf "$TOPLEVEL_DIR"/sandbox/"${1:?}"
+  mkdir -p "$TOPLEVEL_DIR"/sandbox/"${1:?}"
+  cd "$TOPLEVEL_DIR"/sandbox/"${1:?}" || fail_sandbox;
+  disable_eslint;
+}
+
+download_package() {
+  if ! git clone https://"$(npm view "$1" repository.url | grep -o "github.com.*")" "$1"; then
+    fail_source_code "$@"
+  fi
+}
+
+run_build() {
+  if [ "$(jq <"$PWD"/package.json ".scripts.build" | xargs)" != "null" ]; then
+    npm run build
+  fi
+}
+
+copy_files() {
+  shopt -s dotglob
+  mv "$PWD"/"$1"/* "$PWD"
+  shopt -u dotglob
+  rm -d "$PWD"/"$1"
+}
+
+get_package() {
+  download_package "$@";
+  copy_files "$@"
+}
+
+check_main() {
+  if [ "null" = "$(jq <"$PWD"/package.json ".main")" ]; then
+    fail_no_main;
+  fi
+}
+
+check_vanilla_package() {
+  check_main;
+  npm install;
+  if [ -z "$(jq <"$PWD"/package.json ".scripts.test")" ]; then
+    fail_no_tests "$@"
+  fi
+  run_build;
+  if ! npm test; then
+    fail_bad_tests "$@"
+  fi
+}
+
+check_contract_package() {
+  npm install;
+  run_build;
+  if npm test; then
+    succeed_contract
+  else
+    contract_failure
+  fi
+}
+
+check_type_complexity() {
+  if ! cp "$TOPLEVEL_DIR/DefinitelyTyped/types/$1/index.d.ts" "$PWD"; then
+    fail_types_missing;
+  fi
+  if [ "$(wc -l index.d.ts | grep -oP '\d+')" -gt 150 ]; then
+    fail_type_complexity;
+  fi
+  rm "$PWD"/index.d.ts
+}
+
+get_main() {
+  CUR_NAME="$(jq <"$PWD"/package.json ".main" | sed 's/"//g')"
+  if [[ $CUR_NAME == *.js ]]; then
+    printf "%s" "$CUR_NAME"
+  else 
+    printf "%s" "$CUR_NAME".js
+  fi
+}
+
+JS_CODE="let path = require('path'); let json = require('./package.json').main; let parts = json.split(path.sep); parts[parts.length - 1] = '__ORIGINAL_UNTYPED_MODULE__.js'; process.stdout.write(parts.join(path.sep));"
+move_main() {
+  get_main
+  if [ -f "$(get_main)" ]; then
+    mv "$(get_main)" "$(node -e "$JS_CODE")"
+  elif [ -f "$(get_main)".js ]; then
+    mv "$(get_main)".js "$(node -e "$JS_CODE")"
+  else
+    fail_missing_main
+  fi
+}
+
+compile_contracts() {
+  FILE=$(node "$TOPLEVEL_DIR"/bin/find-flow-package $1)
+  cp "$FILE" __ORIGINAL_FLOW_TYPES__.js
+  move_main;
+  run_compiler __ORIGINAL_FLOW_TYPES__.js;
+  mv ./__COMPILATION_RESULT__.js "$(get_main)";
+}
+# }}}
+
+# Main Functions {{{ 
+do_check() {
+  clone_flow_typed;
+  check_type_complexity "$@";
+  create_sandbox "$@";
+  get_package "$@";
+  check_vanilla_package "$@";
+  succeed_check;
+}
+
+do_contract() {
+  clone_flow_typed;
+  create_sandbox "$@";
+  get_package "$@";
+  compile_contracts "$@";
+  check_contract_package;
+}
+# }}}
+
+do_contract "$@";
