@@ -33,11 +33,11 @@ const prettier_1 = __importDefault(require("prettier"));
 // Util {{{
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const readTypesFromFile = (name) => fs_1.default.readFileSync(path_1.default.join(process.cwd(), name), "utf-8");
-const getAst = (input) => parser_1.parse(input.code, {
+const getAst = (input) => (0, parser_1.parse)(input.code, {
     plugins: [input.language],
     sourceType: "module",
 });
-const getCode = (ast) => prettier_1.default.format(generator_1.default(ast).code, { parser: "babel" });
+const getCode = (ast) => prettier_1.default.format((0, generator_1.default)(ast).code, { parser: "babel" });
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const fail = (el) => {
     console.error(el);
@@ -91,7 +91,7 @@ const toFlowObject = (acc, el) => {
         return acc;
     if (el.key.type !== "Identifier")
         return acc;
-    return { ...acc, [el.key.name]: el.value };
+    return { ...acc, [el.key.name]: { type: el.value } };
 };
 const makeFlowObjectLiteral = (types) => {
     return { types: types.reduce(toFlowObject, {}) };
@@ -103,8 +103,8 @@ const extractFlowModuleName = (el) => {
         ((_a = typeAnnotation === null || typeAnnotation === void 0 ? void 0 : typeAnnotation.id) === null || _a === void 0 ? void 0 : _a.type) === "Identifier") {
         return typeAnnotation.id.name;
     }
-    if (el.type === 'DeclareModuleExports') {
-        el.typeAnnotation.typeAnnotation;
+    if (el.type === "DeclareModuleExports") {
+        el.typeAnnotation;
     }
     return null;
 };
@@ -686,9 +686,27 @@ const makeReduceNode = (env) => {
             return makeAnyCt();
         },
     };
+    const flowContractMap = {
+        NumberTypeAnnotation(_) {
+            return makeCtExpression("CT.numberCT");
+        },
+        BooleanTypeAnnotation(_) {
+            return makeCtExpression("CT.booleanCT");
+        },
+        StringTypeAnnotation(_) {
+            return makeCtExpression("CT.stringCT");
+        },
+    };
     const mapFlat = (type) => {
-        const fn = flatContractMap[type.type] || makeAnyCt;
-        return fn(type);
+        const tsFn = flatContractMap[type.type];
+        if (tsFn !== undefined) {
+            return tsFn(type);
+        }
+        const flowFn = flowContractMap[type.type];
+        if (flowFn !== undefined) {
+            return flowFn(type);
+        }
+        return makeAnyCt(type);
     };
     const makeRestParameter = (rest) => {
         if (rest.type !== "TSArrayType")
@@ -792,8 +810,8 @@ const compileTypes = (nodes, graph) => {
     return nodes.map(reduceNode);
 };
 const getContractAst = (graph) => {
-    const ast = parser_1.parse("");
-    const statements = exports.markGraphNodes(graph);
+    const ast = (0, parser_1.parse)("");
+    const statements = (0, exports.markGraphNodes)(graph);
     ast.program.body = [
         ...requireContractLibrary(),
         ...compileTypes(statements, graph),

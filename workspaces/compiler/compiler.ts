@@ -103,10 +103,10 @@ const makeObjectLiteral = (lit: t.TSTypeLiteral): ObjectRecord => {
 const toFlowObject = (
   acc: FlowObjectRecord,
   el: t.ObjectTypeProperty | t.ObjectTypeSpreadProperty
-) => {
+): FlowObjectRecord => {
   if (el.type === "ObjectTypeSpreadProperty") return acc;
   if (el.key.type !== "Identifier") return acc;
-  return { ...acc, [el.key.name]: el.value };
+  return { ...acc, [el.key.name]: { type: el.value } };
 };
 
 const makeFlowObjectLiteral = (
@@ -125,8 +125,8 @@ const extractFlowModuleName = (el: t.DeclareModuleExports): string | null => {
   ) {
     return typeAnnotation.id.name;
   }
-  if (el.type === 'DeclareModuleExports') {
-    el.typeAnnotation.typeAnnotation
+  if (el.type === "DeclareModuleExports") {
+    el.typeAnnotation;
   }
   return null;
 };
@@ -187,7 +187,7 @@ type TypescriptType =
   | ObjectTypescriptType
   | FunctionTypescriptType;
 
-type FlowObjectRecord = Record<string, t.FlowType>;
+type FlowObjectRecord = Record<string, { type: t.FlowType }>;
 
 interface FlowObjectSyntax {
   types: FlowObjectRecord;
@@ -865,9 +865,28 @@ const makeReduceNode = (env: ContractGraph) => {
     },
   };
 
-  const mapFlat = (type: t.TSType): t.Expression => {
-    const fn = flatContractMap[type.type] || makeAnyCt;
-    return fn(type);
+  const flowContractMap: FlatContractMap = {
+    NumberTypeAnnotation(_: t.NumberTypeAnnotation) {
+      return makeCtExpression("CT.numberCT");
+    },
+    BooleanTypeAnnotation(_: t.BooleanTypeAnnotation) {
+      return makeCtExpression("CT.booleanCT");
+    },
+    StringTypeAnnotation(_: t.StringTypeAnnotation) {
+      return makeCtExpression("CT.stringCT");
+    },
+  };
+
+  const mapFlat = (type: t.TSType | t.FlowType): t.Expression => {
+    const tsFn = flatContractMap[type.type];
+    if (tsFn !== undefined) {
+      return tsFn(type);
+    }
+    const flowFn = flowContractMap[type.type];
+    if (flowFn !== undefined) {
+      return flowFn(type);
+    }
+    return makeAnyCt(type as t.TSType);
   };
 
   const makeRestParameter = (rest: t.TSType): t.Expression => {

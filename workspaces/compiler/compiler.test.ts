@@ -239,8 +239,9 @@ describe("Our compiler", () => {
     gotoFixture("randomstring");
     const code = compileContracts({
       fileName: "randomstring.js",
-      language: "flow"
+      language: "flow",
     });
     expect(code).toMatch(`packageExportContract.wrap`);
+    expect(code).toMatch(`CT.numberCT`);
   });
 });
