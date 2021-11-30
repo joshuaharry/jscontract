@@ -232,8 +232,15 @@ describe("Our compiler", () => {
       fileName: "http-codes_v1.x.x.js",
       language: "flow",
     });
-    console.log(code);
     expect(code).toMatch(`module.exports = CODESContract`);
     expect(code).not.toMatch(`TOO_EARLY`);
+  });
+  test("Can export a flow package correctly", () => {
+    gotoFixture("randomstring");
+    const code = compileContracts({
+      fileName: "randomstring.js",
+      language: "flow"
+    });
+    expect(code).toMatch(`packageExportContract.wrap`);
   });
 });

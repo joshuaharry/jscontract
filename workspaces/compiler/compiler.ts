@@ -115,17 +115,20 @@ const makeFlowObjectLiteral = (
   return { types: types.reduce(toFlowObject, {}) };
 };
 
-const extractFlowModuleName = (el: t.DeclareModuleExports): string => {
+const extractFlowModuleName = (el: t.DeclareModuleExports): string | null => {
   const {
     typeAnnotation: { typeAnnotation },
   } = el;
   if (
-    typeAnnotation.type !== "GenericTypeAnnotation" ||
-    typeAnnotation?.id?.type !== "Identifier"
+    typeAnnotation.type === "GenericTypeAnnotation" &&
+    typeAnnotation?.id?.type === "Identifier"
   ) {
-    throw new Error("UNHANDLED FLOW TYPE");
+    return typeAnnotation.id.name;
   }
-  return typeAnnotation.id.name;
+  if (el.type === 'DeclareModuleExports') {
+    el.typeAnnotation.typeAnnotation
+  }
+  return null;
 };
 
 const markExports = (l: ContractToken[]): ContractToken[] => {
@@ -352,14 +355,27 @@ const tokenMap: Record<string, TokenHandler> = {
     return reduceTokens(el.body.body);
   },
   DeclareModuleExports(el: t.DeclareModuleExports) {
+    const typeToMark = extractFlowModuleName(el);
+    if (typeToMark !== null) {
+      return [
+        {
+          name: "NONE",
+          type: null,
+          isSubExport: false,
+          isMainExport: false,
+          existsInJs: false,
+          typeToMark,
+        },
+      ];
+    }
     return [
       {
-        name: "NONE",
-        type: null,
+        name: "packageExport",
+        type: getFlowTypeToken("", el.typeAnnotation.typeAnnotation),
         isSubExport: false,
-        isMainExport: false,
+        isMainExport: true,
         existsInJs: false,
-        typeToMark: extractFlowModuleName(el),
+        typeToMark: null,
       },
     ];
   },
