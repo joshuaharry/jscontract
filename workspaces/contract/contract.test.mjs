@@ -1,17 +1,17 @@
 /*=====================================================================*/
-/*    .../project/jscontract/workspaces/contract/contract.test.js      */
+/*    .../jscontract/workspaces/contract/contract.test.js              */
 /*    -------------------------------------------------------------    */
 /*    Author      :  manuel serrano                                    */
 /*    Creation    :  Tue Feb 18 17:29:10 2020                          */
-/*    Last change :  Fri Jun 11 11:23:43 2021 (serrano)                */
-/*    Copyright   :  2020-21 manuel serrano                            */
+/*    Last change :  Wed Jan 19 17:03:33 2022 (serrano)                */
+/*    Copyright   :  2020-22 manuel serrano                            */
 /*    -------------------------------------------------------------    */
 /*    Test suite for JS contracts                                      */
 /*=====================================================================*/
 "use strict";
 "use hopscript";
 const assert = require("assert");
-const CT = require("./contract.js");
+const CT = require("./contract.mjs");
 
 const not_a_contract = [57];
 

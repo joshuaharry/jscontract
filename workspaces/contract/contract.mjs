@@ -1,10 +1,10 @@
 /*=====================================================================*/
-/*    .../prgm/project/jscontract/workspaces/contract/contract.js      */
+/*    .../jscontract/jscontract/workspaces/contract/contract.mjs       */
 /*    -------------------------------------------------------------    */
 /*    Author      :  manuel serrano                                    */
 /*    Creation    :  Tue Feb 18 17:19:39 2020                          */
-/*    Last change :  Tue Jun 29 17:36:35 2021 (serrano)                */
-/*    Copyright   :  2020-21 manuel serrano                            */
+/*    Last change :  Wed Jan 19 17:38:31 2022 (serrano)                */
+/*    Copyright   :  2020-22 manuel serrano                            */
 /*    -------------------------------------------------------------    */
 /*    Basic contract implementation                                    */
 /*=====================================================================*/
@@ -12,7 +12,58 @@
 "use hopscript";
 
 /*---------------------------------------------------------------------*/
-/*    ContractError                                                               */
+/*    ES6 module                                                       */
+/*---------------------------------------------------------------------*/
+export { trueCT as anyCT };
+export { undefinedCT as voidCT };
+export { booleanCT };
+export { objectCT };
+export { stringCT };
+export { trueCT };
+export { falseCT };
+export { undefinedCT };
+export { errorCT };
+export { numberCT };
+export { arrayBufferCT };
+export { nullCT };
+export { bufferCT };
+export { StringCT };
+export { NumberCT };
+export { BooleanCT };
+export { SymbolCT };
+export { ObjectCT };
+export { BigIntCT };
+export { RegExpCT };
+
+export { CTObject };
+export { CTObject as CTInterface };
+export { CTOr };
+export { CTAnd };
+export { CTRec };
+export { CTFunction };
+export { CTFunctionOpt };
+export { CTFunctionD };
+export { CTPromise };
+export { CTArray };
+export { CTFlat };
+
+export { isObject };
+export { isFunction };
+export { isString };
+export { isBoolean };
+export { isNumber };
+export { True };
+
+// exported for the test suite only
+export { topsort as __topsort };
+export { find_depended_on as __find_depended_on};
+export { toString as __toString };
+
+export { CTexports };
+export { CTimports };
+
+/*---------------------------------------------------------------------*/
+/*    ContractError                                                    */
 /*---------------------------------------------------------------------*/
 class ContractError extends TypeError {}
 
@@ -1174,6 +1225,7 @@ const numberCT = new CTFlat(isNumber);
 const objectCT = new CTFlat(isObject);
 const stringCT = new CTFlat(isString);
 const trueCT = new CTFlat((o) => true);
+const falseCT = new CTFlat((o) => false);
 const arrayBufferCT = new CTFlat(isArrayBuffer);
 const undefinedCT = new CTFlat(isUndefined);
 const errorCT = new CTFlat(isError);
@@ -1190,59 +1242,63 @@ const RegExpCT = new CTFlat(isRegExp);
 /*---------------------------------------------------------------------*/
 /*    exports                                                          */
 /*---------------------------------------------------------------------*/
-exports.anyCT = trueCT;
-exports.voidCT = undefinedCT;
-exports.booleanCT = booleanCT;
-exports.objectCT = objectCT;
-exports.stringCT = stringCT;
-exports.trueCT = trueCT;
-exports.undefinedCT = undefinedCT;
-exports.errorCT = errorCT;
-exports.numberCT = numberCT;
-exports.arrayBufferCT = arrayBufferCT;
-exports.nullCT = nullCT;
-exports.bufferCT = bufferCT;
-exports.StringCT = StringCT;
-exports.NumberCT = NumberCT;
-exports.BooleanCT = BooleanCT;
-exports.SymbolCT = SymbolCT;
-exports.ObjectCT = ObjectCT;
-exports.BigIntCT = BigIntCT;
-exports.RegExpCT = RegExpCT;
-
-exports.CTObject = CTObject;
-exports.CTInterface = CTObject;
-exports.CTOr = CTOr;
-exports.CTAnd = CTAnd;
-exports.CTRec = CTRec;
-exports.CTFunction = CTFunction;
-exports.CTFunctionOpt = CTFunctionOpt;
-exports.CTFunctionD = CTFunctionD;
-exports.CTPromise = CTPromise;
-exports.CTArray = CTArray;
-exports.CTFlat = CTFlat;
-
-exports.isObject = isObject;
-exports.isFunction = isFunction;
-exports.isString = isString;
-exports.isBoolean = isBoolean;
-exports.isNumber = isNumber;
-exports.True = True;
-
-// exported for the test suite only
-exports.__topsort = topsort;
-exports.__find_depended_on = find_depended_on;
-exports.__toString = toString;
-
-exports.CTexports = function (ctc, val, locationt) {
+/* exports.anyCT = trueCT;                                             */
+/* exports.voidCT = undefinedCT;                                       */
+/* exports.booleanCT = booleanCT;                                      */
+/* exports.objectCT = objectCT;                                        */
+/* exports.stringCT = stringCT;                                        */
+/* exports.trueCT = trueCT;                                            */
+/* exports.undefinedCT = undefinedCT;                                  */
+/* exports.errorCT = errorCT;                                          */
+/* exports.numberCT = numberCT;                                        */
+/* exports.arrayBufferCT = arrayBufferCT;                              */
+/* exports.nullCT = nullCT;                                            */
+/* exports.bufferCT = bufferCT;                                        */
+/* exports.StringCT = StringCT;                                        */
+/* exports.NumberCT = NumberCT;                                        */
+/* exports.BooleanCT = BooleanCT;                                      */
+/* exports.SymbolCT = SymbolCT;                                        */
+/* exports.ObjectCT = ObjectCT;                                        */
+/* exports.BigIntCT = BigIntCT;                                        */
+/* exports.RegExpCT = RegExpCT;                                        */
+/*                                                                     */
+/* exports.CTObject = CTObject;                                        */
+/* exports.CTInterface = CTObject;                                     */
+/* exports.CTOr = CTOr;                                                */
+/* exports.CTAnd = CTAnd;                                              */
+/* exports.CTRec = CTRec;                                              */
+/* exports.CTFunction = CTFunction;                                    */
+/* exports.CTFunctionOpt = CTFunctionOpt;                              */
+/* exports.CTFunctionD = CTFunctionD;                                  */
+/* exports.CTPromise = CTPromise;                                      */
+/* exports.CTArray = CTArray;                                          */
+/* exports.CTFlat = CTFlat;                                            */
+/*                                                                     */
+/* exports.isObject = isObject;                                        */
+/* exports.isFunction = isFunction;                                    */
+/* exports.isString = isString;                                        */
+/* exports.isBoolean = isBoolean;                                      */
+/* exports.isNumber = isNumber;                                        */
+/* exports.True = True;                                                */
+/*                                                                     */
+/* // exported for the test suite only                                 */
+/* exports.__topsort = topsort;                                        */
+/* exports.__find_depended_on = find_depended_on;                      */
+/* exports.__toString = toString;                                      */
+/*                                                                     */
+function CTexports(ctc, val, locationt) {
   return (locationf) =>
     CTCoerce(ctc, "CTExports " + locationt).wrap(val, locationt, locationf);
-};
+}
 
-exports.CTimports = function (obj, location) {
+function CTimports(obj, location) {
   let res = {};
   for (let k in obj) {
     res[k] = obj[k](location);
   }
   return res;
-};
+}
+
+/* exports.CTexports = CTexports;                                      */
+/* exports.CTimports = CTimports;                                      */
+
