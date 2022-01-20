@@ -684,8 +684,7 @@ function CTOr(...args)  {
         or_first_order,
         function (blame_object) {
             function mkWrapper(blame_object, kt) {
-                function do_wrapping(target) {
-                    const blame_objects = pos_choice(blame_object, argcs.length);
+                function do_wrapping(target, blame_objects) {
                     var wrapped_target = target;
                     for (let i = 0; i < argcs.length; ++i) {
                         const ei = argcs[i].wrapper(blame_objects[i]);
@@ -693,14 +692,16 @@ function CTOr(...args)  {
                     }
                     return wrapped_target;
                 }
+                const get_blame_objects = pos_choice(blame_object, argcs.length);
                 const handler = {
                     apply: function (target, self, target_args) {
-                        const wrapped_target = do_wrapping(target);
+                        const blame_objects = pos_choice(blame_object, argcs.length);
+                        const wrapped_target = do_wrapping(target, blame_objects);
                         // MS 30apr2021: is it correct not to apply any contract to self?
                         return wrapped_target.apply(self, target_args);
                     },
                     get: function(target, prop, receiver) {
-                        const wrapped_target = do_wrapping(target);
+                        const wrapped_target = do_wrapping(target, get_blame_objects);
                         return wrapped_target[prop];
                     }
                 };

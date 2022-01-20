@@ -632,6 +632,19 @@ assert.ok(
   "ctor.9c"
 );
 
+assert.throws(
+    () => {
+	const CTarr2 = CT.CTOr(CT.CTArray(CT.isString), CT.CTArray(CT.isNumber));
+	const a2 = ["1",2];
+	const ct2a2 = CTarr2.wrap(a2);
+	const c2a20 = ct2a2[0];
+	const c2a21 = ct2a2[1];
+    },
+    /blaming: pos/,
+    "ctor.10"
+)
+
+
 // check errors happen at the right time
 assert.throws(
   () => {
