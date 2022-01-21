@@ -1391,6 +1391,39 @@ assert.ok(
   })(),
   "ctand.10"
 )
+
+assert.throws(
+    () => {
+	const CTarr2 = CT.CTAnd(CT.CTArray(CT.isString), CT.CTArray(CT.isNumber));
+	const a2 = [];
+	const ct2a2 = CTarr2.wrap(a2);
+	ct2a2[0] = 1;
+	ct2a2[0] = "string";
+    },
+    /blaming: neg/,
+    "ctand.11"
+)
+assert.throws(
+    () => {
+	const CTarr2 = CT.CTAnd(CT.CTArray(CT.isString), CT.CTArray(CT.isNumber));
+	const a2 = [1];
+	const ct2a2 = CTarr2.wrap(a2);
+	ct2a2[0]
+    },
+    /blaming: pos/,
+    "ctand.12"
+)
+assert.throws(
+    () => {
+	const CTarr2 = CT.CTAnd(CT.CTArray(CT.isString), CT.CTArray(CT.isNumber));
+	const a2 = ["string"];
+	const ct2a2 = CTarr2.wrap(a2);
+	ct2a2[0]
+    },
+    /blaming: pos/,
+    "ctand.13"
+)
+
 /*
  * Minor bugfixes
  */

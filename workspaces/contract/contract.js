@@ -604,18 +604,38 @@ function CTAnd(...args) {
     },
     function (blame_object) {
       function mkWrapper(blame_object, kt) {
+	const get_set_blame_objects = neg_choice(blame_object, argcs.length);
+
+        function do_wrapping(target, blame_objects) {
+            var wrapped_target = target;
+            for (let i = 0; i < argcs.length; ++i) {
+                const ei = argcs[i].wrapper(blame_objects[i]);
+                wrapped_target = ei[kt].ctor(wrapped_target);
+            }
+            return wrapped_target;
+	}
+
         const handler = {
           apply: function (target, self, target_args) {
             const blame_objects = neg_choice(blame_object, argcs.length);
-            var wrapped_target = target;
-            for (let i = 0; i < argcs.length; ++i) {
-              const ei = argcs[i].wrapper(blame_objects[i]);
-              wrapped_target = ei[kt].ctor(wrapped_target);
-            }
+            var wrapped_target = do_wrapping(target, blame_objects);
             // MS 30apr2021: is it correct not to apply any contract to self?
             const r = wrapped_target.apply(self, target_args);
             return r;
           },
+          get: function(target, prop, receiver) {
+              const wrapped_target = do_wrapping(target, get_set_blame_objects);
+              return wrapped_target[prop];
+	  },
+          set: function(target, prop, newval) {
+              if (prop.match(/^[0-9]+$/)) {
+		  const wrapped_target = do_wrapping(target, get_set_blame_objects);
+		  wrapped_target[prop] = newval;
+              } else {
+		  target[prop] = newval;
+              }
+              return true;
+	  },
         };
         return new CTWrapper(function (value) {
           for (let i = 0; i < argcs.length; ++i) {
