@@ -644,6 +644,27 @@ assert.throws(
     "ctor.10"
 )
 
+assert.throws(
+    () => {
+	const CTarr2 = CT.CTOr(CT.CTArray(CT.isString), CT.CTArray(CT.isNumber));
+	const a2 = [];
+	const ct2a2 = CTarr2.wrap(a2);
+	ct2a2[0] = "string";
+    },
+    /blaming: neg/,
+    "ctor.11"
+)
+assert.throws(
+    () => {
+	const CTarr2 = CT.CTOr(CT.CTArray(CT.isString), CT.CTArray(CT.isNumber));
+	const a2 = [];
+	const ct2a2 = CTarr2.wrap(a2);
+	ct2a2[0] = 1;
+    },
+    /blaming: neg/,
+    "ctor.12"
+)
+
 
 // check errors happen at the right time
 assert.throws(

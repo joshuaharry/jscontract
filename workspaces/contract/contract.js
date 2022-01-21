@@ -712,7 +712,7 @@ function CTOr(...args)  {
                     }
                     return wrapped_target;
                 }
-                const get_blame_objects = pos_choice(blame_object, argcs.length);
+                const get_set_blame_objects = pos_choice(blame_object, argcs.length);
                 const handler = {
                     apply: function (target, self, target_args) {
                         const blame_objects = pos_choice(blame_object, argcs.length);
@@ -721,9 +721,18 @@ function CTOr(...args)  {
                         return wrapped_target.apply(self, target_args);
                     },
                     get: function(target, prop, receiver) {
-                        const wrapped_target = do_wrapping(target, get_blame_objects);
+                        const wrapped_target = do_wrapping(target, get_set_blame_objects);
                         return wrapped_target[prop];
-                    }
+                    },
+		    set: function(target, prop, newval) {
+			if (prop.match(/^[0-9]+$/)) {
+			    const wrapped_target = do_wrapping(target, get_set_blame_objects);
+			    wrapped_target[prop] = newval;
+			} else {
+			    target[prop] = newval;
+			}
+			return true;
+		    }
                 };
                 return new CTWrapper(function (value) {
                     if (! or_first_order(value) ) {
