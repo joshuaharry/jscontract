@@ -665,6 +665,22 @@ assert.throws(
     "ctor.12"
 )
 
+assert.throws(
+    () => {
+	const orfn = CT.CTOr(CT.CTFunction(true, [CT.isNumber], CT.isNumber),
+			     CT.CTFunction(true, [CT.isNumber], CT.isString))
+	const f = function(x) {
+	    if (x === 0) return "x"
+	    return x
+	}
+	const fc = orfn.wrap(f)
+	fc(0)
+	fc(1)
+    },
+    /blaming: pos/,
+    "ctor.13"
+)
+
 
 // check errors happen at the right time
 assert.throws(
