@@ -1,9 +1,9 @@
 /*=====================================================================*/
-/*    serrano/trashcan/bar.mjs                                         */
+/*    .../jscontract/jscontract/workspaces/contract/contractts.js      */
 /*    -------------------------------------------------------------    */
 /*    Author      :  Manuel Serrano                                    */
 /*    Creation    :  Wed Jan 19 16:55:25 2022                          */
-/*    Last change :  Thu Jan 27 18:05:53 2022 (serrano)                */
+/*    Last change :  Thu Jan 27 18:11:04 2022 (serrano)                */
 /*    Copyright   :  2022 Manuel Serrano                               */
 /*    -------------------------------------------------------------    */
 /*    Re-implementation of the examples of                             */
@@ -12,8 +12,8 @@
 "use strict";
 "use hopscript";
 
-import * as assert from "assert";
-import * as CT from "./contract.mjs";
+const assert = require("assert");
+const CT = require("./contract.js");
 
 /*---------------------------------------------------------------------*/
 /*    intro                                                            */
