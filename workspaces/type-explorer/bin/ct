@@ -161,7 +161,6 @@ get_main() {
 
 JS_CODE="let path = require('path'); let json = require('./package.json').main; let parts = json.split(path.sep); parts[parts.length - 1] = '__ORIGINAL_UNTYPED_MODULE__.js'; process.stdout.write(parts.join(path.sep));"
 move_main() {
-  get_main
   if [ -f "$(get_main)" ]; then
     mv "$(get_main)" "$(node -e "$JS_CODE")"
   elif [ -f "$(get_main)".js ]; then
@@ -169,6 +168,47 @@ move_main() {
   else
     fail_missing_main
   fi
+}
+
+export_default_star() {
+  cat << EOF > __TRANSIENT_SEMANTICS__.ts
+export * from "$1";
+import defaultFn from "$1";
+export default defaultFn;
+EOF
+}
+
+export_default_only() {
+  cat << EOF > __TRANSIENT_SEMANTICS__.ts
+import defaultFn from "$1";
+module.exports = defaultFn;
+EOF
+}
+
+create_transient_export() {
+   if grep -R "export = " index.d.ts
+   then
+	   export_default_only "$@";
+   else
+	   export_default_star "$@";
+   fi
+}
+
+move_transient() {
+  move_main;
+  mv ./__TRANSIENT_SEMANTICS__.js "$(get_main)";
+  if [ ./tsr-declarations.js != "$(dirname "$(get_main)")"/tsr-declarations.js ]; then
+    mv ./tsr-declarations.js "$(dirname "$(get_main)")" 
+  fi
+}
+
+compile_transient() {
+  PACKAGE_NAME="$(printf "%s" $1 | sed -e 's/^[[:space:]]*//')"
+  npm install -D ${PACKAGE_NAME} @types/${PACKAGE_NAME} @types/node typescript ts-runtime
+  cp "$TOPLEVEL_DIR/DefinitelyTyped/types/$1/index.d.ts" "$PWD"
+  create_transient_export "$@";
+  tsr __TRANSIENT_SEMANTICS__.ts --tsConfig "$TOPLEVEL_DIR"/tsconfig.json
+  move_transient;
 }
 
 compile_contracts() {
@@ -193,7 +233,8 @@ do_contract() {
   clone_definitely_typed;
   create_sandbox "$@";
   get_package "$@";
-  compile_contracts "$@";
+  # compile_contracts "$@";
+  compile_transient "$@"
   check_contract_package;
 }
 # }}}
