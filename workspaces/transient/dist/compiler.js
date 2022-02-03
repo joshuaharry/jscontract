@@ -89,7 +89,7 @@ const changeExtension = (fileName, newExt) => `${fileName.substring(0, fileName.
 exports.changeExtension = changeExtension;
 const run = async () => {
     const packageJson = require(path_1.default.join(process.cwd(), "package.json"));
-    const main = packageJson.main;
+    const main = packageJson.main || 'index.js';
     const mainPath = path_1.default.join(process.cwd(), main.endsWith(".js") ? main : `${main}.js`);
     const mainDir = path_1.default.dirname(mainPath);
     fs_extra_1.default.moveSync(mainPath, path_1.default.join(mainDir, "__ORIGINAL_UNTYPED_MODULE__.js"), {

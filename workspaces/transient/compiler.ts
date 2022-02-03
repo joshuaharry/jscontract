@@ -82,7 +82,7 @@ export const changeExtension = (fileName: string, newExt: string): string =>
 
 const run = async () => {
   const packageJson = require(path.join(process.cwd(), "package.json"));
-  const main = packageJson.main as string;
+  const main = packageJson.main || 'index.js';
   const mainPath = path.join(
     process.cwd(),
     main.endsWith(".js") ? main : `${main}.js`
