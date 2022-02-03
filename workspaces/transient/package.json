@@ -12,6 +12,7 @@
   "license": "ISC",
   "jest": {
     "preset": "ts-jest",
+    "testPathIgnorePatterns": ["dist"],
     "globals": {
       "ts-jest": {
         "isolatedModules": true

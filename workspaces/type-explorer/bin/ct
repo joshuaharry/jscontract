@@ -172,6 +172,7 @@ move_main() {
 
 export_default_star() {
   cat << EOF > __TRANSIENT_SEMANTICS__.ts
+import t from 'ts-runtime/lib';
 export * from "$1";
 import defaultFn from "$1";
 export default defaultFn;
@@ -180,6 +181,7 @@ EOF
 
 export_default_only() {
   cat << EOF > __TRANSIENT_SEMANTICS__.ts
+import t from 'ts-runtime/lib';
 import defaultFn from "$1";
 module.exports = defaultFn;
 EOF
@@ -203,12 +205,10 @@ move_transient() {
 }
 
 compile_transient() {
+  cp "$TOPLEVEL_DIR/DefinitelyTyped/types/$1/index.d.ts" "$PWD"
   PACKAGE_NAME="$(printf "%s" $1 | sed -e 's/^[[:space:]]*//')"
   npm install -D ${PACKAGE_NAME} @types/${PACKAGE_NAME} @types/node typescript ts-runtime
-  cp "$TOPLEVEL_DIR/DefinitelyTyped/types/$1/index.d.ts" "$PWD"
-  create_transient_export "$@";
-  tsr __TRANSIENT_SEMANTICS__.ts --tsConfig "$TOPLEVEL_DIR"/tsconfig.json
-  move_transient;
+  node "$(dirname "$TOPLEVEL_DIR")"/transient/dist/compiler.js
 }
 
 compile_contracts() {
