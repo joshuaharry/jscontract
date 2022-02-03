@@ -38,11 +38,13 @@ const getEsmoduleExports = (meta: Compiler): string => {
   let out: string = "";
   const libraryExports = checker.getExportsOfModule((sourceFile as any).symbol);
   for (const anExport of libraryExports) {
+    const tsType = checker.getTypeOfSymbolAtLocation(anExport, sourceFile);
     const type = checker.typeToString(
-      checker.getTypeOfSymbolAtLocation(anExport, sourceFile),
+      tsType,
       undefined,
       ts.TypeFormatFlags.NoTruncation
     );
+    console.log(type);
     const { name } = anExport;
     out += makeExport(name, type);
     out += "\n";
@@ -82,7 +84,7 @@ export const changeExtension = (fileName: string, newExt: string): string =>
 
 const run = async () => {
   const packageJson = require(path.join(process.cwd(), "package.json"));
-  const main = packageJson.main || 'index.js';
+  const main = packageJson.main || "index.js";
   const mainPath = path.join(
     process.cwd(),
     main.endsWith(".js") ? main : `${main}.js`
