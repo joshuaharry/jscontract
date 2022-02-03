@@ -8,7 +8,7 @@ export const makeExport = (name: string, type: string) => {
     return `const defaultExp: ${type} = require("./__ORIGINAL_UNTYPED_MODULE__");
 export default defaultExp;`;
   }
-  if (name === 'export=') {
+  if (name === "export=") {
     return `const defaultExp: ${type} = require("./__ORIGINAL_UNTYPED_MODULE__");
 module.exports = defaultExp;`;
   }
@@ -97,7 +97,7 @@ const run = async () => {
   tsr.transform([typescriptName], {
     excludeDeclarationFile: true,
     force: true,
-    compilerOptions: { esModuleInterop: true },
+    compilerOptions: { esModuleInterop: true, strict: true },
   });
 };
 
