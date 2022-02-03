@@ -28,68 +28,71 @@ const fs_extra_1 = __importDefault(require("fs-extra"));
 const path_1 = __importDefault(require("path"));
 const tsr = __importStar(require("ts-runtime"));
 const makeExport = (name, type) => {
-    if (name === "default") {
+    if (name === "default" || name === "export=") {
         return `const defaultExp: ${type} = require("./__ORIGINAL_UNTYPED_MODULE__");
+module.exports = defaultExp;
 export default defaultExp;`;
-    }
-    if (name === "export=") {
-        return `const defaultExp: ${type} = require("./__ORIGINAL_UNTYPED_MODULE__");
-module.exports = defaultExp;`;
     }
     return `export const ${name}: ${type} = require("./__ORIGINAL_UNTYPED_MODULE__").${name};`;
 };
 exports.makeExport = makeExport;
-const fromCompiler = () => {
-    const program = ts.createProgram(["index.d.ts"], {
-        esModuleInterop: true,
-    });
-    const sourceFile = program.getSourceFile("index.d.ts");
-    if (!sourceFile) {
-        throw new Error("MISSING index.d.ts");
+class Compiler {
+    constructor() {
+        const program = ts.createProgram(["index.d.ts"], {
+            esModuleInterop: true,
+        });
+        this.program = program;
+        const sourceFile = program.getSourceFile("index.d.ts");
+        this.sourceFile = sourceFile;
+        this.checker = program.getTypeChecker();
     }
-    const checker = program.getTypeChecker();
-    return { program, sourceFile, checker };
-};
+    stringify(type) {
+        return this.checker.typeToString(type, undefined, ts.TypeFormatFlags.NoTruncation);
+    }
+    getType(sym) {
+        return this.checker.getTypeOfSymbolAtLocation(sym, this.sourceFile);
+    }
+    typeString(sym) {
+        return this.stringify(this.getType(sym));
+    }
+}
 const getEsmoduleExports = (meta) => {
     const { checker, sourceFile } = meta;
-    let out = "";
     const libraryExports = checker.getExportsOfModule(sourceFile.symbol);
-    for (const anExport of libraryExports) {
-        const type = checker.typeToString(checker.getTypeOfSymbolAtLocation(anExport, sourceFile), undefined, ts.TypeFormatFlags.NoTruncation);
+    const code = libraryExports.map((anExport) => {
         const { name } = anExport;
-        out += (0, exports.makeExport)(name, type);
-        out += "\n";
-    }
-    return out;
+        return (0, exports.makeExport)(name, meta.typeString(anExport));
+    });
+    return code;
 };
 const getExportStar = (meta) => {
-    var _a;
     const { sourceFile, checker } = meta;
-    let out = "";
     const rootSyms = checker.getRootSymbols(sourceFile.symbol);
-    for (const sym of rootSyms) {
-        for (const anExport of (((_a = sym.exports) === null || _a === void 0 ? void 0 : _a.values()) || [])) {
-            const type = checker.typeToString(checker.getTypeOfSymbolAtLocation(anExport, sourceFile), undefined, ts.TypeFormatFlags.NoTruncation);
-            const { name } = anExport;
-            out += (0, exports.makeExport)(name, type.includes("typeof") ? "any" : type);
-            out += "\n";
-        }
-    }
-    return out;
+    const theExports = rootSyms.flatMap((sym) => {
+        return sym.exports ? Array.from(sym.exports.values()) : [];
+    });
+    const code = theExports.map((anExport) => {
+        const name = anExport.name;
+        const type = meta.typeString(anExport);
+        return (0, exports.makeExport)(name, type.includes("typeof") ? "any" : type);
+    });
+    return code;
 };
 const compileDeclarations = () => {
-    const meta = fromCompiler();
-    let out = 'import t from "ts-runtime/lib";\n';
-    out += getEsmoduleExports(meta);
-    out += getExportStar(meta);
-    return out;
+    const meta = new Compiler();
+    const code = [
+        'import t from "ts-runtime/lib";',
+        ...getEsmoduleExports(meta),
+        ...getExportStar(meta),
+    ];
+    return code.join("\n");
 };
 exports.compileDeclarations = compileDeclarations;
 const changeExtension = (fileName, newExt) => `${fileName.substring(0, fileName.lastIndexOf("."))}.${newExt}`;
 exports.changeExtension = changeExtension;
 const run = async () => {
     const packageJson = require(path_1.default.join(process.cwd(), "package.json"));
-    const main = packageJson.main || 'index.js';
+    const main = packageJson.main || "index.js";
     const mainPath = path_1.default.join(process.cwd(), main.endsWith(".js") ? main : `${main}.js`);
     const mainDir = path_1.default.dirname(mainPath);
     fs_extra_1.default.moveSync(mainPath, path_1.default.join(mainDir, "__ORIGINAL_UNTYPED_MODULE__.js"), {

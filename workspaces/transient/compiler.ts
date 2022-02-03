@@ -4,79 +4,76 @@ import path from "path";
 import * as tsr from "ts-runtime";
 
 export const makeExport = (name: string, type: string) => {
-  if (name === "default") {
+  if (name === "default" || name === "export=") {
     return `const defaultExp: ${type} = require("./__ORIGINAL_UNTYPED_MODULE__");
+module.exports = defaultExp;
 export default defaultExp;`;
-  }
-  if (name === "export=") {
-    return `const defaultExp: ${type} = require("./__ORIGINAL_UNTYPED_MODULE__");
-module.exports = defaultExp;`;
   }
   return `export const ${name}: ${type} = require("./__ORIGINAL_UNTYPED_MODULE__").${name};`;
 };
 
-interface Compiler {
-  checker: ts.TypeChecker;
-  program: ts.Program;
-  sourceFile: ts.SourceFile;
-}
-
-const fromCompiler = (): Compiler => {
-  const program = ts.createProgram(["index.d.ts"], {
-    esModuleInterop: true,
-  });
-  const sourceFile = program.getSourceFile("index.d.ts");
-  if (!sourceFile) {
-    throw new Error("MISSING index.d.ts");
+class Compiler {
+  readonly checker: ts.TypeChecker;
+  readonly program: ts.Program;
+  readonly sourceFile: ts.SourceFile;
+  constructor() {
+    const program = ts.createProgram(["index.d.ts"], {
+      esModuleInterop: true,
+    });
+    this.program = program;
+    const sourceFile = program.getSourceFile("index.d.ts")!;
+    this.sourceFile = sourceFile!;
+    this.checker = program.getTypeChecker();
   }
-  const checker = program.getTypeChecker();
-  return { program, sourceFile, checker };
-};
-
-const getEsmoduleExports = (meta: Compiler): string => {
-  const { checker, sourceFile } = meta;
-  let out: string = "";
-  const libraryExports = checker.getExportsOfModule((sourceFile as any).symbol);
-  for (const anExport of libraryExports) {
-    const tsType = checker.getTypeOfSymbolAtLocation(anExport, sourceFile);
-    const type = checker.typeToString(
-      tsType,
+  stringify(type: ts.Type): string {
+    return this.checker.typeToString(
+      type,
       undefined,
       ts.TypeFormatFlags.NoTruncation
     );
-    console.log(type);
-    const { name } = anExport;
-    out += makeExport(name, type);
-    out += "\n";
   }
-  return out;
+  getType(sym: ts.Symbol) {
+    return this.checker.getTypeOfSymbolAtLocation(sym, this.sourceFile);
+  }
+  typeString(sym: ts.Symbol) {
+    return this.stringify(this.getType(sym));
+  }
+}
+
+
+
+const getEsmoduleExports = (meta: Compiler): string[] => {
+  const { checker, sourceFile } = meta;
+  const libraryExports = checker.getExportsOfModule((sourceFile as any).symbol);
+  const code = libraryExports.map((anExport) => {
+    const { name } = anExport;
+    return makeExport(name, meta.typeString(anExport));
+  });
+  return code;
 };
 
-const getExportStar = (meta: Compiler): string => {
+const getExportStar = (meta: Compiler): string[] => {
   const { sourceFile, checker } = meta;
-  let out: string = "";
   const rootSyms = checker.getRootSymbols((sourceFile as any).symbol);
-  for (const sym of rootSyms) {
-    for (const anExport of (sym.exports?.values() || []) as any) {
-      const type = checker.typeToString(
-        checker.getTypeOfSymbolAtLocation(anExport, sourceFile),
-        undefined,
-        ts.TypeFormatFlags.NoTruncation
-      );
-      const { name } = anExport;
-      out += makeExport(name, type.includes("typeof") ? "any" : type);
-      out += "\n";
-    }
-  }
-  return out;
+  const theExports: Array<any> = rootSyms.flatMap((sym) => {
+    return sym.exports ? Array.from(sym.exports.values() as any) : [];
+  });
+  const code = theExports.map((anExport) => {
+    const name = anExport.name;
+    const type = meta.typeString(anExport);
+    return makeExport(name, type.includes("typeof") ? "any" : type);
+  });
+  return code;
 };
 
 export const compileDeclarations = (): string => {
-  const meta = fromCompiler();
-  let out: string = 'import t from "ts-runtime/lib";\n';
-  out += getEsmoduleExports(meta);
-  out += getExportStar(meta);
-  return out;
+  const meta = new Compiler();
+  const code: Array<string> = [
+    'import t from "ts-runtime/lib";',
+    ...getEsmoduleExports(meta),
+    ...getExportStar(meta),
+  ];
+  return code.join("\n");
 };
 
 export const changeExtension = (fileName: string, newExt: string): string =>
