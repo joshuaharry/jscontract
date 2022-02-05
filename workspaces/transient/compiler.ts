@@ -25,26 +25,40 @@ class AstExtractor {
   private readonly program: ts.Program;
   private readonly sourceFile: ts.SourceFile;
   private readonly checker: ts.TypeChecker;
+
   constructor() {
     const program = ts.createProgram(["index.d.ts"], {
       esModuleInterop: true,
     });
     const sourceFile = program.getSourceFile("index.d.ts")!;
     const checker = program.getTypeChecker()!;
+
     this.program = program;
     this.sourceFile = sourceFile;
     this.checker = checker;
   }
-  execute(): Export[] {
-    return []
-  }
+  toExport = (node: ts.Node): Export[] => {
+    switch (node.kind) {
+      case ts.SyntaxKind.SyntaxList: {
+        return node.getChildren().flatMap(this.toExport);
+      }
+      case ts.SyntaxKind.VariableStatement: {
+        return node.getChildren().flatMap(this.toExport);
+      }
+      default: {
+        console.log(node.kind);
+        return [];
+      }
+    }
+  };
+  extract = (): Export[] => {
+    return this.sourceFile.getChildren().flatMap(this.toExport);
+  };
 }
-
-
 
 export const compileDeclarations = (): string => {
   const code: Array<string> = ['import t from "ts-runtime/lib";'];
-  const exports = new AstExtractor().execute();
+  const exports = new AstExtractor().extract();
   return code.join("\n");
 };
 
