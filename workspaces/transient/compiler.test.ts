@@ -34,8 +34,23 @@ describe("Our compiler", () => {
   test("Generates the right types for function keywords", () => {
     gotoFixture("function-keywords");
     const out = compileDeclarations();
-    expect(out).toMatch('export function myFunction(x: string): number');
-    expect(out).toMatch('implementation(...arguments)');
+    expect(out).toMatch("export function myFunction(x: string): number");
+    expect(out).toMatch("implementation(...arguments)");
+  });
+  test("We handle function overloads correctly", () => {
+    gotoFixture("function-overloads");
+    const out = compileDeclarations();
+    expect(out).toMatch(`export function myFunction(n: string): number;
+export function myFunction(n: number): string;
+export function myFunction(...args: any) {
+  const fn = require(\"./__ORIGINAL_UNTYPED_MODULE__\").myFunction;
+  return fn(...args)
+}`);
+  });
+  test("We can handle an arrow function correctly", () => {
+    gotoFixture('arrow-functions');
+    const out = compileDeclarations();
+    console.log(out);
   });
   // test("Generates the right types for export=", () => {
   //   gotoFixture("with-export");

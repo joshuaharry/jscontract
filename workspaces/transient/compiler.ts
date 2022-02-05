@@ -86,10 +86,7 @@ class AstExtractor {
     name: string,
     symbol: ts.Symbol
   ): ArrowFunctionExport => {
-    const astNode = symbol.valueDeclaration;
-    if (!astNode) {
-      throw new Error('oops');
-    }
+    const type = this.stringify(symbol);
     return {
       name,
       typeString: this.stringify(symbol),
