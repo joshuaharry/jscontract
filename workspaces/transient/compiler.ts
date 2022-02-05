@@ -3,81 +3,56 @@ import fs from "fs-extra";
 import path from "path";
 import * as tsr from "ts-runtime";
 
-export const makeExport = (name: string, type: string) => {
-  if (name === "default" || name === "export=") {
-    return `const defaultExp: ${type} = require("./__ORIGINAL_UNTYPED_MODULE__");
-module.exports = defaultExp;
-export default defaultExp;`;
-  }
-  return `export const ${name}: ${type} = require("./__ORIGINAL_UNTYPED_MODULE__").${name};`;
-};
+interface PrimitiveExport {
+  name: string;
+  type: string;
+}
 
-class Compiler {
-  readonly checker: ts.TypeChecker;
-  readonly program: ts.Program;
-  readonly sourceFile: ts.SourceFile;
+interface FunctionExport {
+  name: string;
+  parameters: string[];
+  output: string;
+}
+
+interface InterfaceExport {
+  name: string;
+  keyType: Record<string, string>;
+}
+
+type Export = PrimitiveExport | FunctionExport | InterfaceExport;
+
+class AstExtractor {
+  private readonly program: ts.Program;
+  private readonly sourceFile: ts.SourceFile;
+  private readonly checker: ts.TypeChecker;
   constructor() {
     const program = ts.createProgram(["index.d.ts"], {
       esModuleInterop: true,
     });
-    this.program = program;
     const sourceFile = program.getSourceFile("index.d.ts")!;
-    this.sourceFile = sourceFile!;
-    this.checker = program.getTypeChecker();
+    const checker = program.getTypeChecker()!;
+    this.program = program;
+    this.sourceFile = sourceFile;
+    this.checker = checker;
   }
-  stringify(type: ts.Type): string {
-    return this.checker.typeToString(
-      type,
-      undefined,
-      ts.TypeFormatFlags.NoTruncation
-    );
-  }
-  getType(sym: ts.Symbol) {
-    return this.checker.getTypeOfSymbolAtLocation(sym, this.sourceFile);
-  }
-  typeString(sym: ts.Symbol) {
-    return this.stringify(this.getType(sym));
+  execute(): Export[] {
+    return []
   }
 }
 
 
 
-const getEsmoduleExports = (meta: Compiler): string[] => {
-  const { checker, sourceFile } = meta;
-  const libraryExports = checker.getExportsOfModule((sourceFile as any).symbol);
-  const code = libraryExports.map((anExport) => {
-    const { name } = anExport;
-    return makeExport(name, meta.typeString(anExport));
-  });
-  return code;
-};
-
-const getExportStar = (meta: Compiler): string[] => {
-  const { sourceFile, checker } = meta;
-  const rootSyms = checker.getRootSymbols((sourceFile as any).symbol);
-  const theExports: Array<any> = rootSyms.flatMap((sym) => {
-    return sym.exports ? Array.from(sym.exports.values() as any) : [];
-  });
-  const code = theExports.map((anExport) => {
-    const name = anExport.name;
-    const type = meta.typeString(anExport);
-    return makeExport(name, type.includes("typeof") ? "any" : type);
-  });
-  return code;
-};
-
 export const compileDeclarations = (): string => {
-  const meta = new Compiler();
-  const code: Array<string> = [
-    'import t from "ts-runtime/lib";',
-    ...getEsmoduleExports(meta),
-    ...getExportStar(meta),
-  ];
+  const code: Array<string> = ['import t from "ts-runtime/lib";'];
+  const exports = new AstExtractor().execute();
   return code.join("\n");
 };
 
-export const changeExtension = (fileName: string, newExt: string): string =>
-  `${fileName.substring(0, fileName.lastIndexOf("."))}.${newExt}`;
+export const changeExtension = (fileName: string, newExt: string): string => {
+  const lastIdx = fileName.lastIndexOf(".");
+  if (lastIdx === -1) return `${fileName}.ts`;
+  return `${fileName.substring(0, fileName.lastIndexOf("."))}.${newExt}`;
+};
 
 const run = async () => {
   const packageJson = require(path.join(process.cwd(), "package.json"));

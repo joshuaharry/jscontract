@@ -1,75 +1,36 @@
 import path from "path";
-import { changeExtension, makeExport, compileDeclarations } from "./compiler";
+import { changeExtension, compileDeclarations } from "./compiler";
 
 const gotoFixture = (fixture: string) => {
   process.chdir(path.join(__dirname, "fixtures", fixture));
+  jest.resetModules();
 };
 
-describe("Type generation", () => {
-  test("Works with non-default", () => {
-    expect(makeExport("test", "string")).toEqual(
-      'export const test: string = require("./__ORIGINAL_UNTYPED_MODULE__").test;'
-    );
+describe("Our change extension function", () => {
+  test("Works when there is a dot", () => {
+    expect(changeExtension("lib/main.js", "ts")).toEqual("lib/main.ts");
   });
-  test("Works with default", () => {
-    expect(makeExport("default", "number")).toEqual(
-      `const defaultExp: number = require("./__ORIGINAL_UNTYPED_MODULE__");
-module.exports = defaultExp;
-export default defaultExp;`
-    );
-  });
-  test("Works with export=", () => {
-    expect(makeExport("export=", "number")).toEqual(
-      `const defaultExp: number = require("./__ORIGINAL_UNTYPED_MODULE__");
-module.exports = defaultExp;
-export default defaultExp;`
+  test("Works when there is no dot", () => {
+    expect(changeExtension("path/long/main", "ts")).toEqual(
+      "path/long/main.ts"
     );
   });
 });
 
 describe("Our compiler", () => {
-  xtest("Can work on an example by hand", () => {
+  test("Generates the right types for primitives", () => {
     gotoFixture("by-hand");
     const out = compileDeclarations();
-    console.log(out);
-    expect(
-      out.includes(
-        `export const fn: (x: string) => number {
-  const fn = require('./__ORIGINAL_UNTYPED_MODULE__').fn;
-  return fn(x);
-}`
-      )
-    ).toBe(true);
+    expect(out).toMatch(
+      'export const str: string = require("./__ORIGINAL_UNTYPED_MODULE__").str;'
+    );
+    expect(out).toMatch(
+      'export const num: number = require("./__ORIGINAL_UNTYPED_MODULE__").num;'
+    );
   });
-  test("Contains the right import", () => {
+  test.only("Generates the right types for functions", () => {
     gotoFixture("by-hand");
+    console.log(process.cwd());
     const out = compileDeclarations();
-    console.log(out);
-    expect(out.includes(`import t from "ts-runtime/lib";`)).toBe(true);
-  });
-  test("Works with export= syntax", () => {
-    gotoFixture("with-export");
-    const out = compileDeclarations();
-    expect(
-      out.includes(
-        `const defaultExp: (x: string) => number = require("./__ORIGINAL_UNTYPED_MODULE__");`
-      )
-    ).toBe(true);
-  });
-  test("Works with export= and a reference", () => {
-    gotoFixture("with-export-ref");
-    const out = compileDeclarations();
-    expect(
-      out.includes(
-        `const defaultExp: any = require("./__ORIGINAL_UNTYPED_MODULE__");`
-      )
-    ).toBe(true);
-    expect(out.includes('module.exports')).toBe(true);
-  });
-});
-
-describe("Our change extension function", () => {
-  test("Works on a simple case", () => {
-    expect(changeExtension("lib/main.js", "ts")).toEqual("lib/main.ts");
   });
 });
