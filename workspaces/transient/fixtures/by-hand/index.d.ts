@@ -8,6 +8,7 @@ export interface Hello {
   hello: string;
 }
 export const onHello: ((x: Hello) => number) | ((x: Hello) => string);
+export function simple(src: string): number;
 export function copyFile(src: string, dest: string, flags?: number): Promise<void>;
 export function copyFile(src: string, dest: string, callback: (err: Error) => void): void;
 export function copyFile(src: string, dest: string, flags: number, callback: (err: Error) => void): void;

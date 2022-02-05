@@ -28,8 +28,18 @@ describe("Our compiler", () => {
       'export const num: number = require("./__ORIGINAL_UNTYPED_MODULE__").num;'
     );
   });
-  test("Generates the right types for functions", () => {
+  test.only("Generates the right types for functions", () => {
     gotoFixture("by-hand");
     const out = compileDeclarations();
+    console.log(out);
+    
   });
+  test("Generates the right types for export=", () => {
+    gotoFixture("with-export");
+    const out = compileDeclarations();
+  })
+  test("Generates the right types for export=", () => {
+    gotoFixture("with-export-ref");
+    const out = compileDeclarations();
+  })
 });

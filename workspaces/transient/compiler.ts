@@ -13,31 +13,31 @@ const printChildren = (node: ts.Node): void => {
   );
 };
 
-interface PrimitiveExport {
+type DirectExport = { typeHint: "direct"; typeString: string };
+
+type PrimitiveExport = {
+  typeHint: "primitive";
+  typeString: string;
   name: string;
-  type: string;
-}
+};
 
-interface FunctionExport {
+type FunctionExport = {
+  typeHint: "function";
+  typeString: string;
   name: string;
-  parameters: string[];
-  output: string;
-}
+};
 
-interface InterfaceExport {
+type FunctionOverload = {
+  typeHint: "function-overload";
+  typeList: string[];
   name: string;
-  keyType: Record<string, string>;
-}
+};
 
-type Export = PrimitiveExport | FunctionExport | InterfaceExport;
-
-interface VariableStatementToken {
-  isExport: boolean;
-  varType: string;
-  kind: 'VARIABLE'
-}
-
-type Token = VariableStatementToken | { kind: "NOT_HANDLED" };
+type Export =
+  | DirectExport
+  | PrimitiveExport
+  | FunctionExport
+  | FunctionOverload;
 
 class AstExtractor {
   private readonly program: ts.Program;
@@ -56,49 +56,112 @@ class AstExtractor {
     this.checker = checker;
   }
 
-  toToken = (node: ts.Node): Token => {
-    switch (node.kind) {
-      case ts.SyntaxKind.VariableStatement: {
-        const sym = this.checker.getSymbolAtLocation(node);
-        const [_, r1] = node.getChildren();
-        const [__, r2] = r1.getChildren();
-        const [variableDeclaration] = r2.getChildren();
-        const [id] = variableDeclaration.getChildren();
-
-        const symbol = this.checker.getSymbolAtLocation(id);
-        const decls = symbol?.getDeclarations()!;
-        decls.forEach((dec) => {
-          console.log(dec.getFullText(this.sourceFile));
-        });
-        // if (id.kind === ts.SyntaxKind.Identifier) {
-        //   const symbol = this.checker.getSymbolAtLocation(id);
-        //   console.log(symbol?.getEscapedName());
-        // }
-        return { kind: "NOT_HANDLED" };
-      }
-      case ts.SyntaxKind.SyntaxList: {
-        return node.getChildren().flatMap(this.toToken);
-      }
-      default: {
-        return { kind: 'NOT_HANDLED' };
-      }
-    }
+  stringify = (sym: ts.Symbol): string => {
+    return this.checker.typeToString(
+      this.checker.getTypeOfSymbolAtLocation(sym, this.sourceFile),
+      undefined,
+      ts.TypeFormatFlags.NoTruncation
+    );
   };
 
-  toExports = (nodes: ts.Node[]): Export[] => {
-    const tokens = nodes.flatMap(this.toToken);
-    console.log(tokens);
-    return [];
+  toExport = (pair: [name: string, symbol: ts.Symbol]): Export => {
+    const [name, symbol] = pair;
+    if (symbol.flags & ts.SymbolFlags.Interface) {
+      const decs = symbol.getDeclarations()?.map((dec) => dec.getText()) || [
+        "",
+      ];
+      return {
+        typeHint: "direct",
+        typeString: decs[0],
+      };
+    }
+    if (symbol.flags & ts.SymbolFlags.Function) {
+      const overloads =
+        symbol
+          .getDeclarations()
+          ?.map((dec) => dec.getText().replace(";", "")) || [];
+      if (overloads.length <= 1) {
+        return {
+          name,
+          typeHint: "function",
+          typeString: this.stringify(symbol),
+        };
+      }
+      return {
+        name,
+        typeHint: "function-overload",
+        typeList: overloads,
+      };
+    }
+    const typeString = this.stringify(symbol);
+    if (typeString.includes("=>")) {
+      /**
+       * TODO: Walk the tree to get the arguments in a nicer format
+       */
+      return {
+        name,
+        typeString: this.stringify(symbol),
+        typeHint: "function",
+      };
+    }
+    return {
+      name,
+      typeHint: "primitive",
+      typeString: this.stringify(symbol),
+    };
   };
 
   extract = (): Export[] => {
-    return this.toExports(this.sourceFile.getChildren());
+    const root = this.checker.getSymbolAtLocation(this.sourceFile)!;
+    const baseExportPairs: Array<[string, ts.Symbol]> = Array.from(
+      root.exports!.entries() as any
+    );
+    const baseExports = baseExportPairs.map(this.toExport);
+
+    return baseExports;
   };
 }
 
+const makeFunctionExport = (exp: FunctionExport): string => {
+  return `export const ${exp.name} = ${exp.typeString} {
+    const fn = require("./__ORIGINAL_UNTYPED_MODULE__").${exp.name};
+}`;
+};
+
+const makePrimitiveExport = (exp: PrimitiveExport): string => {
+  return `export const ${exp.name}: ${exp.typeString} = require("./__ORIGINAL_UNTYPED_MODULE__").${exp.name}`;
+};
+
+const makeFunctionOverload = (exp: FunctionOverload): string => {
+  const attemptNames = exp.typeList.map((_, i) => `${exp.name}${i}`);
+  const attemptFns = exp.typeList.map((sig, i) => {
+    const fnName = `${exp.name}${i}`;
+    const replacedSig = fnName.replace(exp.name, fnName);
+    return replacedSig;
+  }).join('\n');
+  return `export function ${exp.name}(...args: any) {
+
+}`;
+};
+
+const stringifyExport = (anExp: Export): string => {
+  switch (anExp.typeHint) {
+    case "direct":
+      return anExp.typeString;
+    case "function":
+      return makeFunctionExport(anExp);
+    case "primitive":
+      return makePrimitiveExport(anExp);
+    case "function-overload":
+      return makeFunctionOverload(anExp);
+  }
+};
+
 export const compileDeclarations = (): string => {
-  const code: Array<string> = ['import t from "ts-runtime/lib";'];
-  const exports = new AstExtractor().extract();
+  const code: Array<string> = [
+    'import t from "ts-runtime/lib";',
+    ...new AstExtractor().extract().map(stringifyExport),
+  ];
   return code.join("\n");
 };
 
