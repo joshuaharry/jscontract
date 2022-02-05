@@ -18,7 +18,7 @@ describe("Our change extension function", () => {
 });
 
 describe("Our compiler", () => {
-  test("Generates the right types for primitives", () => {
+  xtest("Generates the right types for primitives", () => {
     gotoFixture("by-hand");
     const out = compileDeclarations();
     expect(out).toMatch(
@@ -28,9 +28,8 @@ describe("Our compiler", () => {
       'export const num: number = require("./__ORIGINAL_UNTYPED_MODULE__").num;'
     );
   });
-  test.only("Generates the right types for functions", () => {
+  test("Generates the right types for functions", () => {
     gotoFixture("by-hand");
-    console.log(process.cwd());
     const out = compileDeclarations();
   });
 });

@@ -2,6 +2,16 @@ import * as ts from "typescript";
 import fs from "fs-extra";
 import path from "path";
 import * as tsr from "ts-runtime";
+import SyntaxMap from "./SyntaxMap";
+
+const printChildren = (node: ts.Node): void => {
+  console.log(
+    node
+      .getChildren()
+      .map((child) => SyntaxMap[child.kind])
+      .join("\n")
+  );
+};
 
 interface PrimitiveExport {
   name: string;
@@ -21,6 +31,14 @@ interface InterfaceExport {
 
 type Export = PrimitiveExport | FunctionExport | InterfaceExport;
 
+interface VariableStatementToken {
+  isExport: boolean;
+  varType: string;
+  kind: 'VARIABLE'
+}
+
+type Token = VariableStatementToken | { kind: "NOT_HANDLED" };
+
 class AstExtractor {
   private readonly program: ts.Program;
   private readonly sourceFile: ts.SourceFile;
@@ -37,22 +55,44 @@ class AstExtractor {
     this.sourceFile = sourceFile;
     this.checker = checker;
   }
-  toExport = (node: ts.Node): Export[] => {
+
+  toToken = (node: ts.Node): Token => {
     switch (node.kind) {
-      case ts.SyntaxKind.SyntaxList: {
-        return node.getChildren().flatMap(this.toExport);
-      }
       case ts.SyntaxKind.VariableStatement: {
-        return node.getChildren().flatMap(this.toExport);
+        const sym = this.checker.getSymbolAtLocation(node);
+        const [_, r1] = node.getChildren();
+        const [__, r2] = r1.getChildren();
+        const [variableDeclaration] = r2.getChildren();
+        const [id] = variableDeclaration.getChildren();
+
+        const symbol = this.checker.getSymbolAtLocation(id);
+        const decls = symbol?.getDeclarations()!;
+        decls.forEach((dec) => {
+          console.log(dec.getFullText(this.sourceFile));
+        });
+        // if (id.kind === ts.SyntaxKind.Identifier) {
+        //   const symbol = this.checker.getSymbolAtLocation(id);
+        //   console.log(symbol?.getEscapedName());
+        // }
+        return { kind: "NOT_HANDLED" };
+      }
+      case ts.SyntaxKind.SyntaxList: {
+        return node.getChildren().flatMap(this.toToken);
       }
       default: {
-        console.log(node.kind);
-        return [];
+        return { kind: 'NOT_HANDLED' };
       }
     }
   };
+
+  toExports = (nodes: ts.Node[]): Export[] => {
+    const tokens = nodes.flatMap(this.toToken);
+    console.log(tokens);
+    return [];
+  };
+
   extract = (): Export[] => {
-    return this.sourceFile.getChildren().flatMap(this.toExport);
+    return this.toExports(this.sourceFile.getChildren());
   };
 }
 
