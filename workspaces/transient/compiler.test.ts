@@ -18,8 +18,8 @@ describe("Our change extension function", () => {
 });
 
 describe("Our compiler", () => {
-  xtest("Generates the right types for primitives", () => {
-    gotoFixture("by-hand");
+  test("Generates the right types for primitives", () => {
+    gotoFixture("primitives");
     const out = compileDeclarations();
     expect(out).toMatch(
       'export const str: string = require("./__ORIGINAL_UNTYPED_MODULE__").str;'
@@ -27,19 +27,22 @@ describe("Our compiler", () => {
     expect(out).toMatch(
       'export const num: number = require("./__ORIGINAL_UNTYPED_MODULE__").num;'
     );
+    expect(out).toMatch(
+      'export const aNull: null = require("./__ORIGINAL_UNTYPED_MODULE__").aNull;'
+    );
   });
-  test.only("Generates the right types for functions", () => {
-    gotoFixture("by-hand");
+  test("Generates the right types for function keywords", () => {
+    gotoFixture("function-keywords");
     const out = compileDeclarations();
-    console.log(out);
-    
+    expect(out).toMatch('export function myFunction(x: string): number');
+    expect(out).toMatch('implementation(...arguments)');
   });
-  test("Generates the right types for export=", () => {
-    gotoFixture("with-export");
-    const out = compileDeclarations();
-  })
-  test("Generates the right types for export=", () => {
-    gotoFixture("with-export-ref");
-    const out = compileDeclarations();
-  })
+  // test("Generates the right types for export=", () => {
+  //   gotoFixture("with-export");
+  //   const out = compileDeclarations();
+  // })
+  // test("Generates the right types for export=", () => {
+  //   gotoFixture("with-export-ref");
+  //   const out = compileDeclarations();
+  // })
 });

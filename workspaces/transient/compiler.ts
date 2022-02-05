@@ -13,6 +13,8 @@ const printChildren = (node: ts.Node): void => {
   );
 };
 
+type SkippableExport = { typeHint: "skip" };
+
 type DirectExport = { typeHint: "direct"; typeString: string };
 
 type PrimitiveExport = {
@@ -21,23 +23,31 @@ type PrimitiveExport = {
   name: string;
 };
 
-type FunctionExport = {
-  typeHint: "function";
+type KeywordFunctionExport = {
+  typeHint: "keyword-function";
   typeString: string;
   name: string;
 };
 
-type FunctionOverload = {
+type ArrowFunctionExport = {
+  typeHint: "arrow-function";
+  typeString: string;
+  name: string;
+};
+
+type FunctionOverloadExport = {
   typeHint: "function-overload";
   typeList: string[];
   name: string;
 };
 
 type Export =
+  | SkippableExport
   | DirectExport
   | PrimitiveExport
-  | FunctionExport
-  | FunctionOverload;
+  | KeywordFunctionExport
+  | ArrowFunctionExport
+  | FunctionOverloadExport;
 
 class AstExtractor {
   private readonly program: ts.Program;
@@ -64,51 +74,84 @@ class AstExtractor {
     );
   };
 
-  toExport = (pair: [name: string, symbol: ts.Symbol]): Export => {
-    const [name, symbol] = pair;
-    if (symbol.flags & ts.SymbolFlags.Interface) {
-      const decs = symbol.getDeclarations()?.map((dec) => dec.getText()) || [
-        "",
-      ];
-      return {
-        typeHint: "direct",
-        typeString: decs[0],
-      };
+  makeInterfaceExport = (symbol: ts.Symbol): DirectExport => {
+    const decs = symbol.getDeclarations()?.map((dec) => dec.getText()) || [""];
+    return {
+      typeHint: "direct",
+      typeString: decs[0],
+    };
+  };
+
+  makeArrowFunction = (
+    name: string,
+    symbol: ts.Symbol
+  ): ArrowFunctionExport => {
+    const astNode = symbol.valueDeclaration;
+    if (!astNode) {
+      throw new Error('oops');
     }
-    if (symbol.flags & ts.SymbolFlags.Function) {
-      const overloads =
-        symbol
-          .getDeclarations()
-          ?.map((dec) => dec.getText().replace(";", "")) || [];
-      if (overloads.length <= 1) {
-        return {
-          name,
-          typeHint: "function",
-          typeString: this.stringify(symbol),
-        };
-      }
-      return {
-        name,
-        typeHint: "function-overload",
-        typeList: overloads,
-      };
-    }
-    const typeString = this.stringify(symbol);
-    if (typeString.includes("=>")) {
-      /**
-       * TODO: Walk the tree to get the arguments in a nicer format
-       */
-      return {
-        name,
-        typeString: this.stringify(symbol),
-        typeHint: "function",
-      };
-    }
+    return {
+      name,
+      typeString: this.stringify(symbol),
+      typeHint: "arrow-function",
+    };
+  };
+
+  makeKeywordFunction = (
+    name: string,
+    symbol: ts.Symbol
+  ): KeywordFunctionExport => {
+    const [declaration] = symbol.getDeclarations()!;
+    return {
+      name,
+      typeHint: "keyword-function",
+      typeString: declaration.getText().replace(";", ""),
+    };
+  };
+
+  makePrimitiveExport = (name: string, symbol: ts.Symbol): PrimitiveExport => {
     return {
       name,
       typeHint: "primitive",
       typeString: this.stringify(symbol),
     };
+  };
+
+  makeFunctionOverload = (
+    name: string,
+    symbol: ts.Symbol
+  ): FunctionOverloadExport => {
+    const overloads = symbol.getDeclarations() || [];
+    return {
+      name,
+      typeHint: "function-overload",
+      typeList: overloads.map((x) => x.getText()),
+    };
+  };
+
+  makeClassicFunction = (name: string, symbol: ts.Symbol): Export => {
+    const overloads = symbol.getDeclarations() || [];
+    const fn =
+      overloads.length <= 1
+        ? this.makeKeywordFunction
+        : this.makeFunctionOverload;
+    return fn(name, symbol);
+  };
+
+  toExport = (pair: [name: string, symbol: ts.Symbol]): Export => {
+    const [name, symbol] = pair;
+    if (symbol === undefined) return { typeHint: "skip" };
+    if (symbol.flags & ts.SymbolFlags.Interface) {
+      return this.makeInterfaceExport(symbol);
+    }
+    if (symbol.flags & ts.SymbolFlags.Function) {
+      return this.makeClassicFunction(name, symbol);
+    }
+    const typeString = this.stringify(symbol);
+    if (typeString.includes("=>")) {
+      return this.makeArrowFunction(name, symbol);
+    }
+    return this.makePrimitiveExport(name, symbol);
   };
 
   extract = (): Export[] => {
@@ -122,36 +165,56 @@ class AstExtractor {
   };
 }
 
-const makeFunctionExport = (exp: FunctionExport): string => {
-  return `export const ${exp.name} = ${exp.typeString} {
-    const fn = require("./__ORIGINAL_UNTYPED_MODULE__").${exp.name};
+const makeArrowFunction = (exp: ArrowFunctionExport): string => {
+  const arrowCount = exp.typeString.match(/=>/g)?.length;
+  /**
+   * If '=>' appears more than once, we have a union type, and ts-runtime can't
+   * handle those. Bail out to any.
+   */
+  const theType =
+    arrowCount === 1
+      ? exp.typeString.replace("=>", ":")
+      : "(...args: any): any";
+  return `export const ${exp.name} = (...args: any): any => {
+    const fn = ${theType} => {
+      const implementation = require("./__ORIGINAL_UNTYPED_MODULE__").${exp.name};
+      return implementation(...args);
+    }
+    return fn(...args);
+}`;
+};
+
+const makeKeywordFunction = (exp: KeywordFunctionExport): string => {
+  return `${exp.typeString} {
+    const implementation = require("./__ORIGINAL_UNTYPED_MODULE__").${exp.name};
+    return implementation(...arguments);
 }`;
 };
 
 const makePrimitiveExport = (exp: PrimitiveExport): string => {
-  return `export const ${exp.name}: ${exp.typeString} = require("./__ORIGINAL_UNTYPED_MODULE__").${exp.name}`;
+  return `export const ${exp.name}: ${exp.typeString} = require("./__ORIGINAL_UNTYPED_MODULE__").${exp.name};`;
 };
 
-const makeFunctionOverload = (exp: FunctionOverload): string => {
-  const attemptNames = exp.typeList.map((_, i) => `${exp.name}${i}`);
-  const attemptFns = exp.typeList.map((sig, i) => {
-    const fnName = `${exp.name}${i}`;
-    const replacedSig = fnName.replace(exp.name, fnName);
-    return replacedSig;
-  }).join('\n');
-  return `export function ${exp.name}(...args: any) {
-
+const makeFunctionOverload = (exp: FunctionOverloadExport): string => {
+  const implementation = `export function ${exp.name}(...args: any) {
+  const fn = require("./__ORIGINAL_UNTYPED_MODULE__").${exp.name};
+  return fn(...args)
 }`;
+  return [...exp.typeList, implementation].join("\n");
 };
 
 const stringifyExport = (anExp: Export): string => {
   switch (anExp.typeHint) {
+    case "skip":
+      return "";
     case "direct":
       return anExp.typeString;
-    case "function":
-      return makeFunctionExport(anExp);
     case "primitive":
       return makePrimitiveExport(anExp);
+    case "keyword-function":
+      return makeKeywordFunction(anExp);
+    case "arrow-function":
+      return makeArrowFunction(anExp);
     case "function-overload":
       return makeFunctionOverload(anExp);
   }

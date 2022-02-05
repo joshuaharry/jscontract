@@ -1,0 +1,1 @@
+export function myFunction(x: string): number;
