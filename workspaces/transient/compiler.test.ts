@@ -48,16 +48,32 @@ export function myFunction(...args: any) {
 }`);
   });
   test("We can handle an arrow function correctly", () => {
-    gotoFixture('arrow-functions');
+    gotoFixture("arrow-functions");
+    const out = compileDeclarations();
+    expect(out).toMatch(`const fn = (x: number) : string`);
+    expect(out).toMatch(`fn(...args)`);
+  });
+  test("We bail out on unions", () => {
+    gotoFixture('unions');
+    const out = compileDeclarations();
+    expect(out).toMatch('any');
+  });
+  test("We can handle export default correctly", () => {
+    gotoFixture('export-default');
+    const out = compileDeclarations();
+    expect(out).toMatch(`export default defaultExp;`)
+    expect(out).toMatch(`module.exports = defaultExp`);
+    expect(out).toMatch('require("./__ORIGINAL_UNTYPED_MODULE__");');
+  });
+  test("We can handle export= correctly", () => {
+    gotoFixture('export=');
+    const out = compileDeclarations();
+    expect(out).toMatch(`x: string, y: number`);
+  });
+  test("We can handle export= ambiguity without an issue", () => {
+    gotoFixture('ambiguity-export=');
     const out = compileDeclarations();
     console.log(out);
+    expect(out).toMatch(`defaultExp: any`);
   });
-  // test("Generates the right types for export=", () => {
-  //   gotoFixture("with-export");
-  //   const out = compileDeclarations();
-  // })
-  // test("Generates the right types for export=", () => {
-  //   gotoFixture("with-export-ref");
-  //   const out = compileDeclarations();
-  // })
 });

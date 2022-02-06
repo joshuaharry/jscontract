@@ -189,7 +189,8 @@ const makeKeywordFunction = (exp: KeywordFunctionExport): string => {
 };
 
 const makePrimitiveExport = (exp: PrimitiveExport): string => {
-  return `export const ${exp.name}: ${exp.typeString} = require("./__ORIGINAL_UNTYPED_MODULE__").${exp.name};`;
+  const theType = exp.typeString.includes('typeof') ? 'any' : exp.typeString;
+  return `export const ${exp.name}: ${theType} = require("./__ORIGINAL_UNTYPED_MODULE__").${exp.name};`;
 };
 
 const makeFunctionOverload = (exp: FunctionOverloadExport): string => {
@@ -200,7 +201,7 @@ const makeFunctionOverload = (exp: FunctionOverloadExport): string => {
   return [...exp.typeList, implementation].join("\n");
 };
 
-const stringifyExport = (anExp: Export): string => {
+const stringifyRawExport = (anExp: Export): string => {
   switch (anExp.typeHint) {
     case "skip":
       return "";
@@ -215,6 +216,23 @@ const stringifyExport = (anExp: Export): string => {
     case "function-overload":
       return makeFunctionOverload(anExp);
   }
+};
+
+const fixDefault = (out: string): string => {
+  const fix = (name: string, main: string): string => {
+    if (!main.includes(`export const ${name}`)) return main;
+    main = main.replace(`export const ${name}`, `const defaultExp`);
+    main = main.replace(`require("./__ORIGINAL_UNTYPED_MODULE__").${name};`, `require("./__ORIGINAL_UNTYPED_MODULE__");`)
+    main += `\nexport default defaultExp;`
+    main += `\nmodule.exports = defaultExp`;
+    return main;
+  }
+  return fix('export=', fix('default', out));
+}
+
+const stringifyExport = (anExp: Export): string => {
+  const out = stringifyRawExport(anExp);
+  return fixDefault(out);
 };
 
 export const compileDeclarations = (): string => {
