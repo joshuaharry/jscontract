@@ -1,10 +1,10 @@
 /*=====================================================================*/
-/*    .../prgm/project/jscontract/workspaces/contract/contract.js      */
+/*    .../jscontract/jscontract/workspaces/contract/contract.mjs       */
 /*    -------------------------------------------------------------    */
 /*    Author      :  manuel serrano                                    */
 /*    Creation    :  Tue Feb 18 17:19:39 2020                          */
-/*    Last change :  Tue Jun 29 17:36:35 2021 (serrano)                */
-/*    Copyright   :  2020-21 manuel serrano                            */
+/*    Last change :  Wed Jan 19 17:38:31 2022 (serrano)                */
+/*    Copyright   :  2020-22 manuel serrano                            */
 /*    -------------------------------------------------------------    */
 /*    Basic contract implementation                                    */
 /*=====================================================================*/
@@ -12,7 +12,7 @@
 "use hopscript";
 
 /*---------------------------------------------------------------------*/
-/*    ContractError                                                               */
+/*    ContractError                                                    */
 /*---------------------------------------------------------------------*/
 class ContractError extends TypeError {}
 
@@ -604,18 +604,38 @@ function CTAnd(...args) {
     },
     function (blame_object) {
       function mkWrapper(blame_object, kt) {
+	const get_set_blame_objects = neg_choice(blame_object, argcs.length);
+
+        function do_wrapping(target, blame_objects) {
+            var wrapped_target = target;
+            for (let i = 0; i < argcs.length; ++i) {
+                const ei = argcs[i].wrapper(blame_objects[i]);
+                wrapped_target = ei[kt].ctor(wrapped_target);
+            }
+            return wrapped_target;
+	}
+
         const handler = {
           apply: function (target, self, target_args) {
             const blame_objects = neg_choice(blame_object, argcs.length);
-            var wrapped_target = target;
-            for (let i = 0; i < argcs.length; ++i) {
-              const ei = argcs[i].wrapper(blame_objects[i]);
-              wrapped_target = ei[kt].ctor(wrapped_target);
-            }
+            var wrapped_target = do_wrapping(target, blame_objects);
             // MS 30apr2021: is it correct not to apply any contract to self?
             const r = wrapped_target.apply(self, target_args);
             return r;
           },
+          get: function(target, prop, receiver) {
+              const wrapped_target = do_wrapping(target, get_set_blame_objects);
+              return wrapped_target[prop];
+	  },
+          set: function(target, prop, newval) {
+              if (prop.match(/^[0-9]+$/)) {
+		  const wrapped_target = do_wrapping(target, get_set_blame_objects);
+		  wrapped_target[prop] = newval;
+              } else {
+		  target[prop] = newval;
+              }
+              return true;
+	  },
         };
         return new CTWrapper(function (value) {
           for (let i = 0; i < argcs.length; ++i) {
@@ -684,8 +704,7 @@ function CTOr(...args)  {
         or_first_order,
         function (blame_object) {
             function mkWrapper(blame_object, kt) {
-                function do_wrapping(target) {
-                    const blame_objects = pos_choice(blame_object, argcs.length);
+                function do_wrapping(target, blame_objects) {
                     var wrapped_target = target;
                     for (let i = 0; i < argcs.length; ++i) {
                         const ei = argcs[i].wrapper(blame_objects[i]);
@@ -693,16 +712,26 @@ function CTOr(...args)  {
                     }
                     return wrapped_target;
                 }
+                const blame_objects = pos_choice(blame_object, argcs.length);
                 const handler = {
                     apply: function (target, self, target_args) {
-                        const wrapped_target = do_wrapping(target);
+                        const wrapped_target = do_wrapping(target, blame_objects);
                         // MS 30apr2021: is it correct not to apply any contract to self?
                         return wrapped_target.apply(self, target_args);
                     },
                     get: function(target, prop, receiver) {
-                        const wrapped_target = do_wrapping(target);
+                        const wrapped_target = do_wrapping(target, blame_objects);
                         return wrapped_target[prop];
-                    }
+                    },
+		    set: function(target, prop, newval) {
+			if (prop.match(/^[0-9]+$/)) {
+			    const wrapped_target = do_wrapping(target, blame_objects);
+			    wrapped_target[prop] = newval;
+			} else {
+			    target[prop] = newval;
+			}
+			return true;
+		    }
                 };
                 return new CTWrapper(function (value) {
                     if (! or_first_order(value) ) {
@@ -1174,6 +1203,7 @@ const numberCT = new CTFlat(isNumber);
 const objectCT = new CTFlat(isObject);
 const stringCT = new CTFlat(isString);
 const trueCT = new CTFlat((o) => true);
+const falseCT = new CTFlat((o) => false);
 const arrayBufferCT = new CTFlat(isArrayBuffer);
 const undefinedCT = new CTFlat(isUndefined);
 const errorCT = new CTFlat(isError);
@@ -1234,15 +1264,18 @@ exports.__topsort = topsort;
 exports.__find_depended_on = find_depended_on;
 exports.__toString = toString;
 
-exports.CTexports = function (ctc, val, locationt) {
+function CTexports(ctc, val, locationt) {
   return (locationf) =>
     CTCoerce(ctc, "CTExports " + locationt).wrap(val, locationt, locationf);
-};
+}
 
-exports.CTimports = function (obj, location) {
+function CTimports(obj, location) {
   let res = {};
   for (let k in obj) {
     res[k] = obj[k](location);
   }
   return res;
-};
+}
+
+exports.CTexports = CTexports;
+exports.CTimports = CTimports;

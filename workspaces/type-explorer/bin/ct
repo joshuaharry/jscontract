@@ -65,12 +65,6 @@ fail_missing_main() {
 # }}}
 
 # Helpers {{{
-disable_eslint() {
-  cat << EOF > "$PWD"/.eslintignore
-**/*.js
-EOF
-}
-
 clone_definitely_typed() {
   if [ ! -d "$TOPLEVEL_DIR/DefinitelyTyped" ]; then
     git clone https://github.com/DefinitelyTyped/DefinitelyTyped "$TOPLEVEL_DIR/DefinitelyTyped"
@@ -85,7 +79,6 @@ create_sandbox() {
   rm -rf "$TOPLEVEL_DIR"/sandbox/"${1:?}"
   mkdir -p "$TOPLEVEL_DIR"/sandbox/"${1:?}"
   cd "$TOPLEVEL_DIR"/sandbox/"${1:?}" || fail_sandbox;
-  disable_eslint;
 }
 
 download_package() {
@@ -113,7 +106,7 @@ get_package() {
 }
 
 check_main() {
-  if [ "null" = "$(jq <"$PWD"/package.json ".main")" ]; then
+  if [ "null" = "$(jq <"$PWD"/package.json ".main")" ] && [ ! -f index.js ]; then
     fail_no_main;
   fi
 }
@@ -150,18 +143,13 @@ check_type_complexity() {
   rm "$PWD"/index.d.ts
 }
 
+GET_MAIN_CODE="let path = require('path'); let json = require('./package.json').main; let mainStr = json ? json.endsWith('js') ? json : json + '.js' : 'index.js'; process.stdout.write(mainStr)"
 get_main() {
-  CUR_NAME="$(jq <"$PWD"/package.json ".main" | sed 's/"//g')"
-  if [[ $CUR_NAME == *.js ]]; then
-    printf "%s" "$CUR_NAME"
-  else 
-    printf "%s" "$CUR_NAME".js
-  fi
+  node -e "$GET_MAIN_CODE";
 }
 
-JS_CODE="let path = require('path'); let json = require('./package.json').main; let parts = json.split(path.sep); parts[parts.length - 1] = '__ORIGINAL_UNTYPED_MODULE__.js'; process.stdout.write(parts.join(path.sep));"
+JS_CODE="let path = require('path'); let json = require('./package.json').main; let mainStr = json ? json.endsWith('js') ? json : json + '.js' : 'index.js'; let parts = mainStr.split(path.sep); parts[parts.length - 1] = '__ORIGINAL_UNTYPED_MODULE__.js'; process.stdout.write(parts.join(path.sep));"
 move_main() {
-  get_main
   if [ -f "$(get_main)" ]; then
     mv "$(get_main)" "$(node -e "$JS_CODE")"
   elif [ -f "$(get_main)".js ]; then
@@ -169,6 +157,47 @@ move_main() {
   else
     fail_missing_main
   fi
+}
+
+export_default_star() {
+  cat << EOF > __TRANSIENT_SEMANTICS__.ts
+import t from 'ts-runtime/lib';
+export * from "$1";
+import defaultFn from "$1";
+export default defaultFn;
+EOF
+}
+
+export_default_only() {
+  cat << EOF > __TRANSIENT_SEMANTICS__.ts
+import t from 'ts-runtime/lib';
+import defaultFn from "$1";
+module.exports = defaultFn;
+EOF
+}
+
+create_transient_export() {
+   if grep -R "export = " index.d.ts
+   then
+	   export_default_only "$@";
+   else
+	   export_default_star "$@";
+   fi
+}
+
+move_transient() {
+  move_main;
+  mv ./__TRANSIENT_SEMANTICS__.js "$(get_main)";
+  if [ ./tsr-declarations.js != "$(dirname "$(get_main)")"/tsr-declarations.js ]; then
+    mv ./tsr-declarations.js "$(dirname "$(get_main)")" 
+  fi
+}
+
+compile_transient() {
+  cp "$TOPLEVEL_DIR/DefinitelyTyped/types/$1/index.d.ts" "$PWD"
+  PACKAGE_NAME="$(printf "%s" $1 | sed -e 's/^[[:space:]]*//')"
+  npm install -D ${PACKAGE_NAME} @types/${PACKAGE_NAME} @types/node typescript ts-runtime
+  node "$(dirname "$TOPLEVEL_DIR")"/transient/dist/compiler.js
 }
 
 compile_contracts() {
@@ -182,7 +211,6 @@ compile_contracts() {
 # Main Functions {{{ 
 do_check() {
   clone_definitely_typed;
-  check_type_complexity "$@";
   create_sandbox "$@";
   get_package "$@";
   check_vanilla_package "$@";

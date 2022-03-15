@@ -11,7 +11,7 @@
 "use strict";
 "use hopscript";
 const assert = require("assert");
-const CT = require("./contract.js");
+const CT = require("./contract.mjs");
 
 const not_a_contract = [57];
 
@@ -631,56 +631,6 @@ assert.ok(
   })(),
   "ctor.9c"
 );
-
-assert.throws(
-    () => {
-	const CTarr2 = CT.CTOr(CT.CTArray(CT.isString), CT.CTArray(CT.isNumber));
-	const a2 = ["1",2];
-	const ct2a2 = CTarr2.wrap(a2);
-	const c2a20 = ct2a2[0];
-	const c2a21 = ct2a2[1];
-    },
-    /blaming: pos/,
-    "ctor.10"
-)
-
-assert.throws(
-    () => {
-	const CTarr2 = CT.CTOr(CT.CTArray(CT.isString), CT.CTArray(CT.isNumber));
-	const a2 = [];
-	const ct2a2 = CTarr2.wrap(a2);
-	ct2a2[0] = "string";
-    },
-    /blaming: neg/,
-    "ctor.11"
-)
-assert.throws(
-    () => {
-	const CTarr2 = CT.CTOr(CT.CTArray(CT.isString), CT.CTArray(CT.isNumber));
-	const a2 = [];
-	const ct2a2 = CTarr2.wrap(a2);
-	ct2a2[0] = 1;
-    },
-    /blaming: neg/,
-    "ctor.12"
-)
-
-assert.throws(
-    () => {
-	const orfn = CT.CTOr(CT.CTFunction(true, [CT.isNumber], CT.isNumber),
-			     CT.CTFunction(true, [CT.isNumber], CT.isString))
-	const f = function(x) {
-	    if (x === 0) return "x"
-	    return x
-	}
-	const fc = orfn.wrap(f)
-	fc(0)
-	fc(1)
-    },
-    /blaming: pos/,
-    "ctor.13"
-)
-
 
 // check errors happen at the right time
 assert.throws(
@@ -1428,39 +1378,6 @@ assert.ok(
   })(),
   "ctand.10"
 )
-
-assert.throws(
-    () => {
-	const CTarr2 = CT.CTAnd(CT.CTArray(CT.isString), CT.CTArray(CT.isNumber));
-	const a2 = [];
-	const ct2a2 = CTarr2.wrap(a2);
-	ct2a2[0] = 1;
-	ct2a2[0] = "string";
-    },
-    /blaming: neg/,
-    "ctand.11"
-)
-assert.throws(
-    () => {
-	const CTarr2 = CT.CTAnd(CT.CTArray(CT.isString), CT.CTArray(CT.isNumber));
-	const a2 = [1];
-	const ct2a2 = CTarr2.wrap(a2);
-	ct2a2[0]
-    },
-    /blaming: pos/,
-    "ctand.12"
-)
-assert.throws(
-    () => {
-	const CTarr2 = CT.CTAnd(CT.CTArray(CT.isString), CT.CTArray(CT.isNumber));
-	const a2 = ["string"];
-	const ct2a2 = CTarr2.wrap(a2);
-	ct2a2[0]
-    },
-    /blaming: pos/,
-    "ctand.13"
-)
-
 /*
  * Minor bugfixes
  */
@@ -1743,4 +1660,3 @@ assert.ok(
   let res = CT.__toString(true);
   assert.ok(res === "true");
 }
-console.log("All tests currently passing!");
