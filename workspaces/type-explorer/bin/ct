@@ -65,19 +65,14 @@ fail_missing_main() {
 # }}}
 
 # Helpers {{{
-clone_definitely_typed() {
-  if [ ! -d "$TOPLEVEL_DIR/DefinitelyTyped" ]; then
-    git clone https://github.com/DefinitelyTyped/DefinitelyTyped "$TOPLEVEL_DIR/DefinitelyTyped"
-  fi
-}
-
 run_compiler() {
   node "$(dirname "$TOPLEVEL_DIR")"/compiler/dist/compiler.js
 }
 
 create_sandbox() {
-  rm -rf "$TOPLEVEL_DIR"/sandbox/"${1:?}"
-  mkdir -p "$TOPLEVEL_DIR"/sandbox/"${1:?}"
+  if [ ! -d "$TOPLEVEL_DIR"/sandbox/"${1:?}" ]; then
+    mkdir -p "$TOPLEVEL_DIR"/sandbox/"${1:?}"
+  fi
   cd "$TOPLEVEL_DIR"/sandbox/"${1:?}" || fail_sandbox;
 }
 
@@ -101,8 +96,10 @@ copy_files() {
 }
 
 get_package() {
-  download_package "$@";
-  copy_files "$@"
+  if [ ! -f package.json ]; then
+    download_package "$@";
+    copy_files "$@"
+  fi
 }
 
 check_main() {
@@ -113,7 +110,9 @@ check_main() {
 
 check_vanilla_package() {
   check_main;
-  npm install;
+  if [ ! -d node_modules ]; then
+    npm install;
+  fi
   if [ -z "$(jq <"$PWD"/package.json ".scripts.test")" ]; then
     fail_no_tests "$@"
   fi
@@ -124,7 +123,9 @@ check_vanilla_package() {
 }
 
 check_contract_package() {
-  npm install;
+  if [ ! -d node_modules ]; then
+    npm install;
+  fi
   run_build;
   if npm test; then
     succeed_contract
@@ -176,41 +177,19 @@ module.exports = defaultFn;
 EOF
 }
 
-create_transient_export() {
-   if grep -R "export = " index.d.ts
-   then
-	   export_default_only "$@";
-   else
-	   export_default_star "$@";
-   fi
-}
-
-move_transient() {
-  move_main;
-  mv ./__TRANSIENT_SEMANTICS__.js "$(get_main)";
-  if [ ./tsr-declarations.js != "$(dirname "$(get_main)")"/tsr-declarations.js ]; then
-    mv ./tsr-declarations.js "$(dirname "$(get_main)")" 
-  fi
-}
-
-compile_transient() {
-  cp "$TOPLEVEL_DIR/DefinitelyTyped/types/$1/index.d.ts" "$PWD"
-  PACKAGE_NAME="$(printf "%s" $1 | sed -e 's/^[[:space:]]*//')"
-  npm install -D ${PACKAGE_NAME} @types/${PACKAGE_NAME} @types/node typescript ts-runtime
-  node "$(dirname "$TOPLEVEL_DIR")"/transient/dist/compiler.js
-}
-
 compile_contracts() {
   cp "$TOPLEVEL_DIR/DefinitelyTyped/types/$1/index.d.ts" "$PWD"
   move_main;
-  run_compiler; # &> "$(get_main)"
+  run_compiler;
+  if [ "$2" = "--disabled-contracts" ]; then
+    sed -i -e 's/@jscontract\/contract/@jscontract\/nocontract/g' __COMPILATION_RESULT__.js;
+  fi
   mv ./__COMPILATION_RESULT__.js "$(get_main)";
 }
 # }}}
 
 # Main Functions {{{ 
 do_check() {
-  clone_definitely_typed;
   create_sandbox "$@";
   get_package "$@";
   check_vanilla_package "$@";
@@ -218,7 +197,6 @@ do_check() {
 }
 
 do_contract() {
-  clone_definitely_typed;
   create_sandbox "$@";
   get_package "$@";
   compile_contracts "$@";
@@ -226,4 +204,8 @@ do_contract() {
 }
 # }}}
 
-do_contract "$@";
+if [ "$2" = "--check-testability" ]; then
+  do_check "$@";
+else
+  do_contract "$@";
+fi
