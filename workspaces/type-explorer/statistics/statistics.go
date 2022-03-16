@@ -58,7 +58,7 @@ func initialPackagesList() []string {
 	if err != nil {
 		log.Fatal(err)
 	}
-	out := make([]string, len(files))
+	out := []string{}
 	for _, f := range files {
 		out = append(out, f.Name())
 	}
