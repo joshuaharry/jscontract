@@ -146,22 +146,66 @@ func checkEnabledContract(packageName string) ScriptResult {
 
 func makeResultMap(packages []string, method func(string) ScriptResult) map[string]bool {
 	ans := make(map[string]bool, len(packages))
+	// jobs is a channel that functions as a queue of packages to analyze.
+	jobs := make(chan string, 8)
+	// results is a channel that holds the results of the computations we do in parallel.
 	results := make(chan ScriptResult, len(packages))
+	// wg is a WaitGroup that we increment whenever we start work so that we make sure
+	// all of our jobs eventually finish.
 	wg := sync.WaitGroup{}
 	for _, pkg := range packages {
+		// Add a job to the queue. If the queue is full, this will block.
+		jobs <- pkg
+		// Add 1 to the wait group.
 		wg.Add(1)
-		go func(name string) {
-			results <- method(name)
+		go func() {
+			// Take a job off of the queue at some point in the future, potentially freeing
+			// more work to start.
+			job := <-jobs
+			// Analyze the package, clean it up, and add the result.
+			res := method(job)
+			res.cleanup()
+			results <- res
+			// Decrement the wait group.
 			wg.Done()
-		}(pkg)
+		}()
 	}
+	// Wait for the wait group to finish.
 	wg.Wait()
+	// Cleanup.
+	close(jobs)
 	close(results)
-	for res := range results {
-		ans[res.packageName] = res.passed
+	// Store everything in a map.
+	for result := range results {
+		ans[result.packageName] = result.passed
 	}
 	return ans
 }
+
+// func makeResultMap(packages []string, method func(string) ScriptResult) map[string]bool {
+// 	ans := make(map[string]bool, len(packages))
+// 	results := make(chan ScriptResult, len(packages))
+// 	jobs := make(chan struct{}, 8)
+// 	wg := sync.WaitGroup{}
+// 	for _, pkg := range packages {
+// 		jobs <- struct{}{}
+// 		wg.Add(1)
+// 		go func(name string) {
+// 			res := method(name)
+// 			res.cleanup()
+// 			results <- res
+// 			<-jobs
+// 			wg.Done()
+// 		}(pkg)
+// 	}
+// 	wg.Wait()
+// 	close(results)
+// 	close(jobs)
+// 	for res := range results {
+// 		ans[res.packageName] = res.passed
+// 	}
+// 	return ans
+// }
 
 type FilterResult struct {
 	passed int
