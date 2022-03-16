@@ -1,4 +1,4 @@
-statistics:
+../bin/statistics:
 	@ go build -o statistics
 	@ mv statistics ../bin
 

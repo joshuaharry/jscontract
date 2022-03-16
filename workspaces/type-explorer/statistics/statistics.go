@@ -17,6 +17,7 @@ var DISABLED_CONTRACTS string = "disabled_contracts"
 var ENABLED_CONTRACTS string = "enabled_contracts"
 var COMMIT string = "998fe1077af548a7c97fcee5f2057bdb04d3855c"
 var SCRIPT string = "ct"
+var MAX_PROCESSES int = 8
 
 func note(args ...interface{}) {
 	if !VERBOSE {
@@ -147,28 +148,27 @@ func checkEnabledContract(packageName string) ScriptResult {
 func makeResultMap(packages []string, method func(string) ScriptResult) map[string]bool {
 	ans := make(map[string]bool, len(packages))
 	// jobs is a channel that functions as a queue of packages to analyze.
-	jobs := make(chan string, 8)
+	jobs := make(chan string, MAX_PROCESSES)
 	// results is a channel that holds the results of the computations we do in parallel.
 	results := make(chan ScriptResult, len(packages))
 	// wg is a WaitGroup that we increment whenever we start work so that we make sure
 	// all of our jobs eventually finish.
 	wg := sync.WaitGroup{}
 	for _, pkg := range packages {
-		// Add a job to the queue. If the queue is full, this will block.
+		// Add a job onto the queue.
 		jobs <- pkg
-		// Add 1 to the wait group.
 		wg.Add(1)
-		go func() {
-			// Take a job off of the queue at some point in the future, potentially freeing
-			// more work to start.
-			job := <-jobs
+		go func(name string) {
 			// Analyze the package, clean it up, and add the result.
-			res := method(job)
+			res := method(name)
+			// Remove a job from the queue. If the queue is full, this will block,
+			// ensuring that we don't run more than MAX_PROCESSES at a time.
+			<-jobs
 			res.cleanup()
 			results <- res
 			// Decrement the wait group.
 			wg.Done()
-		}()
+		}(pkg)
 	}
 	// Wait for the wait group to finish.
 	wg.Wait()
@@ -181,31 +181,6 @@ func makeResultMap(packages []string, method func(string) ScriptResult) map[stri
 	}
 	return ans
 }
-
-// func makeResultMap(packages []string, method func(string) ScriptResult) map[string]bool {
-// 	ans := make(map[string]bool, len(packages))
-// 	results := make(chan ScriptResult, len(packages))
-// 	jobs := make(chan struct{}, 8)
-// 	wg := sync.WaitGroup{}
-// 	for _, pkg := range packages {
-// 		jobs <- struct{}{}
-// 		wg.Add(1)
-// 		go func(name string) {
-// 			res := method(name)
-// 			res.cleanup()
-// 			results <- res
-// 			<-jobs
-// 			wg.Done()
-// 		}(pkg)
-// 	}
-// 	wg.Wait()
-// 	close(results)
-// 	close(jobs)
-// 	for res := range results {
-// 		ans[res.packageName] = res.passed
-// 	}
-// 	return ans
-// }
 
 type FilterResult struct {
 	passed int
@@ -228,12 +203,29 @@ func filterPassed(answerMap map[string]bool) FilterResult {
 	return FilterResult{passed, failed, result}
 }
 
+func chainSteps(packages []string, steps [](func(string) ScriptResult)) {
+	curPackages := packages
+	for _, step := range steps {
+		res := filterPassed(makeResultMap(curPackages, step))
+		curPackages = res.result
+	}
+}
+
 func main() {
 	setup()
 	// packages := initialPackagesList()
-	makeResultMap([]string{"7zip-min", "ffprobe", "abbrev", "gaussian", "zipcodes"}, checkCompatability)
-	// checkCompatability("7zip-min")
-	// checkDisabledContract("7zip-min")
-	// checkEnabledContract("7zip-min")
+	chainSteps([]string{
+		"7zip-min",
+		"ffprobe",
+		"abbrev",
+		"gaussian",
+		"zipcodes",
+		"abs",
+		"argv",
+		"asciify",
+		"boom",
+		"branca",
+	},
+		[]func(string) ScriptResult{checkCompatability, checkDisabledContract, checkEnabledContract})
 	note("Done.")
 }

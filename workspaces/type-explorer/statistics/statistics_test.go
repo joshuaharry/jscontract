@@ -34,4 +34,11 @@ func Test_parallelism(t *testing.T) {
 	if len(ans) == 0 {
 		t.Error("Expected ans to have values.")
 	}
+	for k, v := range ans {
+		if k == "7zip-min" && v == true {
+			t.Error("Expected false v for 7zip-min")
+		} else if k != "7zip-min" && v == false {
+			t.Error("Expected everything else to be true")
+		}
+	}
 }
