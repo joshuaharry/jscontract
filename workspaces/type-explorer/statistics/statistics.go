@@ -246,18 +246,7 @@ func chainSteps(packages []string, steps [](func(string) ScriptResult)) {
 
 func main() {
 	setup()
-	packages := []string{
-		"7zip-min",
-		"ffprobe",
-		"abbrev",
-		"gaussian",
-		"zipcodes",
-		"abs",
-		"argv",
-		"asciify",
-		"boom",
-		"branca",
-	}
+	packages := initialPackagesList()
 	chainSteps(
 		packages,
 		[]func(string) ScriptResult{checkCompatability, checkDisabledContract, checkEnabledContract},
