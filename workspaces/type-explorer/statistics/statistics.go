@@ -1,12 +1,14 @@
 package main
 
 import (
+	"errors"
 	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
 	"strings"
 	"sync"
+	"time"
 )
 
 var VERBOSE bool = false
@@ -85,17 +87,58 @@ func (res ScriptResult) cleanup() {
 	try(os.RemoveAll(removeDir))
 }
 
+type CmdResult struct {
+	message string
+	error   error
+}
+
+func (cmd CmdResult) bytes() []byte {
+	out := cmd.message
+	if cmd.error != nil {
+		out += "\n" + cmd.error.Error()
+	}
+	return []byte(out)
+}
+
+func outputResult(cmd *exec.Cmd) CmdResult {
+	out, err := cmd.CombinedOutput()
+	errorString := ""
+	if err != nil {
+		errorString = err.Error()
+	}
+	message := string(out) + "\n" + errorString
+	return CmdResult{
+		message: message,
+		error:   err,
+	}
+
+}
+
+func output(cmd *exec.Cmd) CmdResult {
+	timeout := make(chan CmdResult, 1)
+	defer close(timeout)
+	go func() {
+		answer := outputResult(cmd)
+		timeout <- answer
+	}()
+	select {
+	case res := <-timeout:
+		return res
+	case <-time.After(2 * time.Minute):
+		return CmdResult{
+			message: "Timeout.",
+			error:   errors.New("fatal timeout"),
+		}
+	}
+}
+
 func (config ScriptConfig) run() ScriptResult {
 	cmd := exec.Command(SCRIPT, config.packageName, config.scriptArgument)
-	theBytes, err := cmd.CombinedOutput()
-	message := string(theBytes)
-	if err != nil {
-		message += ("\n" + err.Error())
-	}
-	os.WriteFile(config.path(), []byte(message), 0644)
+	out := output(cmd)
+	os.WriteFile(config.path(), out.bytes(), 0644)
 	return ScriptResult{
 		packageName: config.packageName,
-		passed:      err == nil,
+		passed:      out.error == nil,
 	}
 }
 
@@ -197,8 +240,21 @@ func chainSteps(packages []string, steps [](func(string) ScriptResult)) {
 }
 
 func main() {
+	setup()
+	packages := []string{
+		"7zip-min",
+		"ffprobe",
+		"abbrev",
+		"gaussian",
+		"zipcodes",
+		"abs",
+		"argv",
+		"asciify",
+		"boom",
+		"branca",
+	}
 	chainSteps(
-		initialPackagesList(),
+		packages,
 		[]func(string) ScriptResult{checkCompatability, checkDisabledContract, checkEnabledContract},
 	)
 }
