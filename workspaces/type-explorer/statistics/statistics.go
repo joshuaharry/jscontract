@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -18,13 +17,6 @@ var ENABLED_CONTRACTS string = "enabled_contracts"
 var COMMIT string = "998fe1077af548a7c97fcee5f2057bdb04d3855c"
 var SCRIPT string = "ct"
 var MAX_PROCESSES int = 8
-
-func note(args ...interface{}) {
-	if !VERBOSE {
-		return
-	}
-	fmt.Println(args...)
-}
 
 func try(err error) {
 	if err != nil {
@@ -49,15 +41,11 @@ func fetchDefinitelyTyped() {
 }
 
 func setup() {
-	note("Setting up directories...")
 	os.Mkdir(PACKAGE_COMPATABILITY, 0777)
 	os.Mkdir(DISABLED_CONTRACTS, 0777)
 	os.Mkdir(ENABLED_CONTRACTS, 0777)
-	note("Setup complete. Cleaning sandbox...")
 	cleanSandbox()
-	note("Sandbox cleaning complete. Fetching required types...")
 	fetchDefinitelyTyped()
-	note("Type fetching complete.")
 }
 
 func initialPackagesList() []string {
@@ -112,36 +100,30 @@ func (config ScriptConfig) run() ScriptResult {
 }
 
 func checkCompatability(packageName string) ScriptResult {
-	note(packageName, ": checking compatability...")
 	res := ScriptConfig{
 		packageName:    packageName,
 		scriptArgument: "--check-testability",
 		dirName:        PACKAGE_COMPATABILITY,
 	}.run()
 	res.cleanup()
-	note(packageName, ": compatability check complete.")
 	return res
 }
 
 func checkDisabledContract(packageName string) ScriptResult {
-	note(packageName, ": checking disabled contracts...")
 	res := ScriptConfig{
 		packageName:    packageName,
 		scriptArgument: "--disabled-contracts",
 		dirName:        DISABLED_CONTRACTS,
 	}.run()
-	note(packageName, ": disabled contracts check complete.")
 	return res
 }
 
 func checkEnabledContract(packageName string) ScriptResult {
-	note(packageName, ": checking enabled contracts...")
 	res := ScriptConfig{
 		packageName:    packageName,
 		scriptArgument: "--enabled-contracts",
 		dirName:        ENABLED_CONTRACTS,
 	}.run()
-	note(packageName, ": enabled contracts check complete.")
 	return res
 }
 
@@ -215,20 +197,8 @@ func chainSteps(packages []string, steps [](func(string) ScriptResult)) {
 }
 
 func main() {
-	setup()
-	// packages := initialPackagesList()
-	chainSteps([]string{
-		"7zip-min",
-		"ffprobe",
-		"abbrev",
-		"gaussian",
-		"zipcodes",
-		"abs",
-		"argv",
-		"asciify",
-		"boom",
-		"branca",
-	},
-		[]func(string) ScriptResult{checkCompatability, checkDisabledContract, checkEnabledContract})
-	note("Done.")
+	chainSteps(
+		initialPackagesList(),
+		[]func(string) ScriptResult{checkCompatability, checkDisabledContract, checkEnabledContract},
+	)
 }
