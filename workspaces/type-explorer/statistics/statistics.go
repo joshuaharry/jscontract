@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"sync"
 )
 
 var VERBOSE bool = true
@@ -145,10 +146,18 @@ func checkEnabledContract(packageName string) ScriptResult {
 
 func makeResultMap(packages []string, method func(string) ScriptResult) map[string]bool {
 	ans := make(map[string]bool, len(packages))
-	// For up to 10 packages at a time, run METHOD with a 3 minute timeout. When you get a result,
-	// store it into the answer map.
-	for _, packageName := range packages {
-		res := method(packageName)
+	results := make(chan ScriptResult, len(packages))
+	wg := sync.WaitGroup{}
+	for _, pkg := range packages {
+		wg.Add(1)
+		go func(name string) {
+			results <- method(name)
+			wg.Done()
+		}(pkg)
+	}
+	wg.Wait()
+	close(results)
+	for res := range results {
 		ans[res.packageName] = res.passed
 	}
 	return ans
