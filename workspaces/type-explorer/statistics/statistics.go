@@ -10,7 +10,7 @@ import (
 	"sync"
 )
 
-var VERBOSE bool = true
+var VERBOSE bool = false
 var SANDBOX string = "sandbox"
 var PACKAGE_COMPATABILITY string = "package_compatability"
 var DISABLED_CONTRACTS string = "disabled_contracts"
@@ -205,9 +205,12 @@ func filterPassed(answerMap map[string]bool) FilterResult {
 
 func chainSteps(packages []string, steps [](func(string) ScriptResult)) {
 	curPackages := packages
-	for _, step := range steps {
+	for i, step := range steps {
+		stepNum := i + 1
+		log.Println("Beginning step", stepNum, "processing", len(curPackages), "packages")
 		res := filterPassed(makeResultMap(curPackages, step))
 		curPackages = res.result
+		log.Println("Step", stepNum, "complete:", res.passed, "passed", res.failed, "failed")
 	}
 }
 
