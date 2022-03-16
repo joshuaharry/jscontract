@@ -36,10 +36,12 @@ func fetchDefinitelyTyped() {
 	if err == nil {
 		return
 	}
+	log.Println("Cloning DefinitelyTyped...")
 	try(exec.Command("git", "clone", "https://github.com/DefinitelyTyped/DefinitelyTyped").Run())
 	try(os.Chdir("DefinitelyTyped"))
 	try(exec.Command("git", "checkout", COMMIT).Run())
 	try(os.Chdir(".."))
+	log.Println("Type declarations downloaded.")
 }
 
 func setup() {
@@ -47,6 +49,7 @@ func setup() {
 	os.Mkdir(DISABLED_CONTRACTS, 0777)
 	os.Mkdir(ENABLED_CONTRACTS, 0777)
 	cleanSandbox()
+	os.Mkdir(SANDBOX, 0777)
 	fetchDefinitelyTyped()
 }
 
@@ -133,9 +136,11 @@ func output(cmd *exec.Cmd) CmdResult {
 }
 
 func (config ScriptConfig) run() ScriptResult {
+	log.Println(config.packageName, ": running", config.scriptArgument)
 	cmd := exec.Command(SCRIPT, config.packageName, config.scriptArgument)
 	out := output(cmd)
 	os.WriteFile(config.path(), out.bytes(), 0644)
+	log.Println(config.packageName, ": finished", config.scriptArgument)
 	return ScriptResult{
 		packageName: config.packageName,
 		passed:      out.error == nil,
