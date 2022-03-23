@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { parse, ParserPlugin } from "@babel/parser";
+import {parse, ParserPlugin} from "@babel/parser";
 import * as t from "@babel/types";
 import generate from "@babel/generator";
 import template from "@babel/template";
@@ -23,7 +23,7 @@ const getAst = (input: CompilerInput): t.File =>
   });
 
 const getCode = (ast: t.File): string =>
-  prettier.format(generate(ast).code, { parser: "babel" });
+  prettier.format(generate(ast).code, {parser: "babel"});
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const fail = (el: any) => {
@@ -49,7 +49,7 @@ export const markGraphNodes = (graph: Graph): GraphNode[] =>
     (nodes: GraphNode[], node) =>
       nodes.concat(
         isBackwardsReference(nodes, node)
-          ? { ...node, isRecursive: true }
+          ? {...node, isRecursive: true}
           : node
       ),
     []
@@ -57,7 +57,7 @@ export const markGraphNodes = (graph: Graph): GraphNode[] =>
 
 const getTypeName = (curType: t.TSEntityName | t.Identifier): string => {
   if (curType.type === "Identifier") return curType.name;
-  const { left, right } = curType;
+  const {left, right} = curType;
   return `${getTypeName(left)}.${right.name}`;
 };
 
@@ -73,9 +73,9 @@ const addIndexSignature = (
   acc: ObjectRecord,
   el: t.TSIndexSignature
 ): ObjectRecord => {
-  const { name } = el.parameters[0];
+  const {name} = el.parameters[0];
   const type = el.typeAnnotation?.typeAnnotation || t.tsAnyKeyword();
-  return { ...acc, [name]: { type, isIndex: true, isOptional: false } };
+  return {...acc, [name]: {type, isIndex: true, isOptional: false}};
 };
 
 const addPropertySignature = (
@@ -87,7 +87,7 @@ const addPropertySignature = (
   if (!type) return acc;
   return {
     ...acc,
-    [el.key.name]: { type, isOptional: Boolean(el.optional), isIndex: false },
+    [el.key.name]: {type, isOptional: Boolean(el.optional), isIndex: false},
   };
 };
 
@@ -106,18 +106,18 @@ const toFlowObject = (
 ): FlowObjectRecord => {
   if (el.type === "ObjectTypeSpreadProperty") return acc;
   if (el.key.type !== "Identifier") return acc;
-  return { ...acc, [el.key.name]: { type: el.value } };
+  return {...acc, [el.key.name]: {type: el.value}};
 };
 
 const makeFlowObjectLiteral = (
   types: Array<t.ObjectTypeProperty | t.ObjectTypeSpreadProperty>
 ): FlowObjectSyntax => {
-  return { types: types.reduce(toFlowObject, {}) };
+  return {types: types.reduce(toFlowObject, {})};
 };
 
 const extractFlowModuleName = (el: t.DeclareModuleExports): string | null => {
   const {
-    typeAnnotation: { typeAnnotation },
+    typeAnnotation: {typeAnnotation},
   } = el;
   if (
     typeAnnotation.type === "GenericTypeAnnotation" &&
@@ -136,7 +136,7 @@ const markExports = (l: ContractToken[]): ContractToken[] => {
   const theTypes = l.filter((token) => token.typeToMark === null);
   return theTypes.map((type) => {
     return theExports.some((exp) => exp.typeToMark === type.name)
-      ? { ...type, isMainExport: true }
+      ? {...type, isMainExport: true}
       : type;
   });
 };
@@ -187,7 +187,7 @@ type TypescriptType =
   | ObjectTypescriptType
   | FunctionTypescriptType;
 
-type FlowObjectRecord = Record<string, { type: t.FlowType }>;
+type FlowObjectRecord = Record<string, {type: t.FlowType}>;
 
 interface FlowObjectSyntax {
   types: FlowObjectRecord;
@@ -217,7 +217,7 @@ type ParameterChild =
 
 const getParameterType = (el: ParameterChild): t.TSType =>
   el.type !== "TSParameterProperty" &&
-  el?.typeAnnotation?.type === "TSTypeAnnotation"
+    el?.typeAnnotation?.type === "TSTypeAnnotation"
     ? el.typeAnnotation.typeAnnotation
     : t.tsAnyKeyword();
 
@@ -243,10 +243,10 @@ const accumulateType = (
   type?: t.TSType
 ): ObjectRecord => {
   if (!type || el?.key?.type !== "Identifier") return acc;
-  const { name } = el.key;
+  const {name} = el.key;
   return {
     ...acc,
-    [name]: { type, isIndex: false, isOptional: Boolean(el.optional) },
+    [name]: {type, isIndex: false, isOptional: Boolean(el.optional)},
   };
 };
 
@@ -295,7 +295,7 @@ const typeContainsName = (name: string, chunk: ObjectChunk) => {
         return typeName === name;
       },
       TSFunctionType(type: t.TSFunctionType) {
-        const { typeAnnotation } = type;
+        const {typeAnnotation} = type;
         if (typeAnnotation && loop(typeAnnotation.typeAnnotation)) return true;
         return false;
       },
@@ -325,12 +325,12 @@ const checkRecursive = (name: string, types: ObjectRecord): boolean => {
 };
 
 const getTypeToken = (name: string, type: t.TSType): TypescriptType => {
-  if (type.type !== "TSTypeLiteral") return { hint: "flat", syntax: type };
-  if (!isLiteralObject(type)) return { hint: "flat", syntax: type };
+  if (type.type !== "TSTypeLiteral") return {hint: "flat", syntax: type};
+  if (!isLiteralObject(type)) return {hint: "flat", syntax: type};
   const types = makeObjectLiteral(type);
   return {
     hint: "object",
-    syntax: { types, isRecursive: checkRecursive(name, types) },
+    syntax: {types, isRecursive: checkRecursive(name, types)},
   };
 };
 
@@ -392,7 +392,7 @@ const tokenMap: Record<string, TokenHandler> = {
     ];
   },
   TSTypeAliasDeclaration(el: t.TSTypeAliasDeclaration) {
-    const { name } = el.id;
+    const {name} = el.id;
     const typeAnnotation = el.typeAnnotation;
     if (!t.isTSType(typeAnnotation)) return [];
     const type = typeAnnotation as t.TSType;
@@ -409,7 +409,7 @@ const tokenMap: Record<string, TokenHandler> = {
   },
   TSExportAssignment(el: t.TSExportAssignment) {
     if (el.expression.type !== "Identifier") return [];
-    const { name } = el.expression;
+    const {name} = el.expression;
     return [
       {
         name,
@@ -427,19 +427,19 @@ const tokenMap: Record<string, TokenHandler> = {
   TSModuleDeclaration(el: t.TSModuleDeclaration) {
     const tokens = getContractTokens(el.body);
     if (el.id.type !== "Identifier") return [];
-    const { name } = el.id;
-    return tokens.map((token) => ({ ...token, name: `${name}.${token.name}` }));
+    const {name} = el.id;
+    return tokens.map((token) => ({...token, name: `${name}.${token.name}`}));
   },
   TSInterfaceDeclaration(el: t.TSInterfaceDeclaration) {
     const name = el.id.name;
-    const { body } = el.body;
+    const {body} = el.body;
     const types = getObjectTypes(body);
     return [
       {
         name,
         type: {
           hint: "object",
-          syntax: { types, isRecursive: checkRecursive(name, types) },
+          syntax: {types, isRecursive: checkRecursive(name, types)},
         },
         typeToMark: null,
         isSubExport: false,
@@ -460,7 +460,7 @@ const tokenMap: Record<string, TokenHandler> = {
       {
         name,
         typeToMark: null,
-        type: { hint: "function", syntax },
+        type: {hint: "function", syntax},
         isSubExport: false,
         isMainExport: false,
         existsInJs: true,
@@ -473,7 +473,7 @@ const tokenMap: Record<string, TokenHandler> = {
     if (tokens.length === 0) return [];
     if (tokens.length > 1) return fail(tokens);
     const statement = tokens[0];
-    return [{ ...statement, isSubExport: statement.existsInJs }];
+    return [{...statement, isSubExport: statement.existsInJs}];
   },
   VariableDeclaration(el: t.VariableDeclaration) {
     if (el.declarations.length !== 1) return fail(el);
@@ -485,7 +485,7 @@ const tokenMap: Record<string, TokenHandler> = {
     return getContractTokens(el.id);
   },
   Identifier(el: t.Identifier) {
-    const { name } = el;
+    const {name} = el;
     if (el?.typeAnnotation?.type !== "TSTypeAnnotation") return [];
     const syntax = el.typeAnnotation.typeAnnotation;
     return [
@@ -555,7 +555,7 @@ const depMap: DepMapper = {
     return type.types.flatMap(getDeps);
   },
   TSArrayType(type: t.TSArrayType) {
-    return getTypeDependencies({ hint: "flat", syntax: type.elementType });
+    return getTypeDependencies({hint: "flat", syntax: type.elementType});
   },
 };
 
@@ -640,7 +640,7 @@ const getContractGraph = (tokens: ContractToken[]): ContractGraph => {
   const names = Array.from(new Set(tokens.map((token) => token.name)));
   return fixDependencyNames(
     names.reduce((acc: ContractGraph, el) => {
-      return { ...acc, [el]: buildNode(el, tokens) };
+      return {...acc, [el]: buildNode(el, tokens)};
     }, {})
   );
 };
@@ -673,8 +673,8 @@ const getModuleExports = (nodes: ContractNode[]): t.Statement => {
   const mainExport = nodes.find((node) => node.isMainExport);
   return mainExport
     ? template.statement(`module.exports = %%contract%%.wrap(originalModule)`)({
-        contract: getContractName(mainExport.name),
-      })
+      contract: getContractName(mainExport.name),
+    })
     : template.statement(`module.exports = {}`)({});
 };
 
@@ -697,10 +697,10 @@ const exportContracts = (nodes: ContractNode[]): t.Statement[] => {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const makeAnyCt = (_?: t.TSType) =>
-  template.expression(`CT.anyCT`)({ CT: t.identifier("CT") });
+  template.expression(`CT.anyCT`)({CT: t.identifier("CT")});
 
 const makeCtExpression = (name: string): t.Expression =>
-  template.expression(name)({ CT: t.identifier("CT") });
+  template.expression(name)({CT: t.identifier("CT")});
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type FlatContractMap = Record<string, (type?: any) => t.Expression>;
@@ -733,7 +733,7 @@ const makeReduceNode = (env: ContractGraph) => {
   const giveUpOnReference = (ref: t.TSTypeReference): t.Expression => {
     console.log(
       `We gave up on this type: `,
-      prettier.format(JSON.stringify(ref), { parser: "json" })
+      prettier.format(JSON.stringify(ref), {parser: "json"})
     );
     return makeAnyCt();
   };
@@ -755,8 +755,8 @@ const makeReduceNode = (env: ContractGraph) => {
         params.length === 1
           ? mapFlat(params[0])
           : template.expression(`CT.CTOr(%%ors%%)`)({
-              ors: params.map((param) => mapFlat(param)),
-            }),
+            ors: params.map((param) => mapFlat(param)),
+          }),
     });
   };
 
@@ -831,7 +831,7 @@ const makeReduceNode = (env: ContractGraph) => {
     TSTypeReference(ref: t.TSTypeReference) {
       if (ref?.typeName?.type !== "Identifier")
         return handleUnknownReference(ref);
-      const { name } = ref.typeName;
+      const {name} = ref.typeName;
       const refFn = typeRefMap[name] || handleUnknownReference;
       return refFn(ref);
     },
@@ -891,7 +891,7 @@ const makeReduceNode = (env: ContractGraph) => {
 
   const makeRestParameter = (rest: t.TSType): t.Expression => {
     if (rest.type !== "TSArrayType")
-      return template.expression(`{ contract: CT.anyCT, dotdotdot: true }`)({});
+      return template.expression(`{ contract: CT.anyCT, dotdotdot: true }`)({CT: t.identifier("CT")});
     return template.expression(`{ contract: %%contract%%, dotdotdot: true }`)({
       contract: mapFlat(rest.elementType),
     });
@@ -968,7 +968,7 @@ const makeReduceNode = (env: ContractGraph) => {
       const [name, type] = chunkEntry;
       if (type.isOptional) return addOptionalType(acc, chunkEntry);
       if (type.isIndex) return addIndexType(acc, chunkEntry);
-      return { ...acc, [name]: mapFlat(type.type) };
+      return {...acc, [name]: mapFlat(type.type)};
     }, {});
   };
 

@@ -1,5 +1,5 @@
 import path from "path";
-import compileContracts, { markGraphNodes } from "./compiler";
+import compileContracts, {markGraphNodes} from "./compiler";
 
 const gotoFixture = (fixture: string) =>
   process.chdir(path.join(__dirname, "fixtures", fixture));
@@ -14,38 +14,38 @@ describe("Our mark recursive algorithm", () => {
   test("Works when the nodes have no dependencies", () => {
     expect(
       markGraphNodes({
-        a: { name: "a", dependencies: [], isRecursive: false },
-        b: { name: "b", dependencies: [], isRecursive: false },
-        c: { name: "c", dependencies: [], isRecursive: false },
+        a: {name: "a", dependencies: [], isRecursive: false},
+        b: {name: "b", dependencies: [], isRecursive: false},
+        c: {name: "c", dependencies: [], isRecursive: false},
       })
     ).toEqual([
-      { name: "a", dependencies: [], isRecursive: false },
-      { name: "b", dependencies: [], isRecursive: false },
-      { name: "c", dependencies: [], isRecursive: false },
+      {name: "a", dependencies: [], isRecursive: false},
+      {name: "b", dependencies: [], isRecursive: false},
+      {name: "c", dependencies: [], isRecursive: false},
     ]);
   });
   test("Works when the nodes have dependencies", () => {
     expect(
       markGraphNodes({
-        a: { name: "a", dependencies: ["b", "c"], isRecursive: false },
-        b: { name: "b", dependencies: [], isRecursive: false },
-        c: { name: "c", dependencies: ["b"], isRecursive: false },
+        a: {name: "a", dependencies: ["b", "c"], isRecursive: false},
+        b: {name: "b", dependencies: [], isRecursive: false},
+        c: {name: "c", dependencies: ["b"], isRecursive: false},
       })
     ).toEqual([
-      { name: "a", dependencies: ["b", "c"], isRecursive: true },
-      { name: "b", dependencies: [], isRecursive: false },
-      { name: "c", dependencies: ["b"], isRecursive: false },
+      {name: "a", dependencies: ["b", "c"], isRecursive: true},
+      {name: "b", dependencies: [], isRecursive: false},
+      {name: "c", dependencies: ["b"], isRecursive: false},
     ]);
   });
   test("Handles cycles correctly", () => {
     expect(
       markGraphNodes({
-        a: { name: "a", dependencies: ["b"], isRecursive: false },
-        b: { name: "b", dependencies: ["a"], isRecursive: false },
+        a: {name: "a", dependencies: ["b"], isRecursive: false},
+        b: {name: "b", dependencies: ["a"], isRecursive: false},
       })
     ).toEqual([
-      { name: "a", dependencies: ["b"], isRecursive: true },
-      { name: "b", dependencies: ["a"], isRecursive: false },
+      {name: "a", dependencies: ["b"], isRecursive: true},
+      {name: "b", dependencies: ["a"], isRecursive: false},
     ]);
   });
   test("Works with more realistic code", () => {
@@ -243,5 +243,9 @@ describe("Our compiler", () => {
     });
     expect(code).toMatch(`packageExportContract.wrap`);
     expect(code).toMatch(`CT.numberCT`);
+  });
+  test("Can handle the abbrev patched package", () => {
+    gotoFixture('abbrev-patched');
+    const code = compile()
   });
 });
