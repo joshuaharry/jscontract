@@ -475,6 +475,10 @@ const tokenMap: Record<string, TokenHandler> = {
     const statement = tokens[0];
     return [{...statement, isSubExport: statement.existsInJs}];
   },
+  ExportDefaultDeclaration(el: t.ExportDefaultDeclaration) {
+    if (el.declaration.type !== 'Identifier') return [];
+    return [{ type: null, existsInJs: true, isSubExport: false, isMainExport: true, name: el.declaration.name, typeToMark: null }];
+  },
   VariableDeclaration(el: t.VariableDeclaration) {
     if (el.declarations.length !== 1) return fail(el);
     const declaration = el.declarations[0];

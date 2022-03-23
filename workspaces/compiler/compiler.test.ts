@@ -246,6 +246,11 @@ describe("Our compiler", () => {
   });
   test("Can handle the abbrev patched package", () => {
     gotoFixture('abbrev-patched');
-    const code = compile()
+    compile()
+  });
+  test("Can handle the absolute package", () => {
+    gotoFixture('absolute');
+    const code = compile();
+    expect(code).toMatch('module.exports = absoluteContract');
   });
 });
