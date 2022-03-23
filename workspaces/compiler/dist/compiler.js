@@ -366,6 +366,11 @@ const tokenMap = {
         const statement = tokens[0];
         return [{ ...statement, isSubExport: statement.existsInJs }];
     },
+    ExportDefaultDeclaration(el) {
+        if (el.declaration.type !== 'Identifier')
+            return [];
+        return [{ type: null, existsInJs: true, isSubExport: false, isMainExport: true, name: el.declaration.name, typeToMark: null }];
+    },
     VariableDeclaration(el) {
         if (el.declarations.length !== 1)
             return fail(el);
@@ -714,7 +719,7 @@ const makeReduceNode = (env) => {
     };
     const makeRestParameter = (rest) => {
         if (rest.type !== "TSArrayType")
-            return template_1.default.expression(`{ contract: CT.anyCT, dotdotdot: true }`)({});
+            return template_1.default.expression(`{ contract: CT.anyCT, dotdotdot: true }`)({ CT: t.identifier("CT") });
         return template_1.default.expression(`{ contract: %%contract%%, dotdotdot: true }`)({
             contract: mapFlat(rest.elementType),
         });
