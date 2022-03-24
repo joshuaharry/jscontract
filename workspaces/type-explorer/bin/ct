@@ -77,7 +77,9 @@ create_sandbox() {
 }
 
 download_package() {
-  if ! git clone https://"$(npm view "$1" repository.url | grep -o "github.com.*")" "$1"; then
+  FIX_NAME="var y = '$1'; y = y.includes('__') ? (() => { var sp = y.split('__'); return \`@\${sp[0]}/\${sp[1]}\`;  })() : y; process.stdout.write(y);"
+  NAME=$(node -e "$FIX_NAME")
+  if ! git clone https://"$(npm view "$NAME" repository.url | grep -o "github.com.*")" "$1"; then
     fail_source_code "$@"
   fi
 }
