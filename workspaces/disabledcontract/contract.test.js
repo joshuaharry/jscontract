@@ -14,3 +14,34 @@ assert.ok(CT.stringCT.wrap(3));
   const wf = plus_ctc.wrap(f);
   wf(1, "2");
 }
+
+{
+  var unpackContract = CT.CTAnd(
+    CT.CTFunction(
+      true,
+      [
+        CT.stringCT,
+        CT.stringCT,
+        CT.CTFunction(
+          CT.trueCT,
+          [CT.CTOr(CT.errorCT, CT.nullCT)],
+          CT.undefinedCT
+        ),
+      ],
+      CT.undefinedCT
+    ),
+    CT.CTFunction(
+      true,
+      [
+        CT.stringCT,
+        CT.CTFunction(
+          CT.trueCT,
+          [CT.CTOr(CT.errorCT, CT.nullCT)],
+          CT.undefinedCT
+        ),
+      ],
+      CT.undefinedCT
+    )
+  ).wrap(() => {});
+  unpackContract(3);
+}
