@@ -1,0 +1,230 @@
+We gave up on this type:  {
+  "type": "TSTypeReference",
+  "start": 566,
+  "end": 589,
+  "loc": {
+    "start": { "line": 19, "column": 20 },
+    "end": { "line": 19, "column": 43 }
+  },
+  "typeName": {
+    "type": "Identifier",
+    "start": 566,
+    "end": 572,
+    "loc": {
+      "start": { "line": 19, "column": 20 },
+      "end": { "line": 19, "column": 26 },
+      "identifierName": "Record"
+    },
+    "name": "Record"
+  },
+  "typeParameters": {
+    "type": "TSTypeParameterInstantiation",
+    "start": 572,
+    "end": 589,
+    "loc": {
+      "start": { "line": 19, "column": 26 },
+      "end": { "line": 19, "column": 43 }
+    },
+    "params": [
+      {
+        "type": "TSStringKeyword",
+        "start": 573,
+        "end": 579,
+        "loc": {
+          "start": { "line": 19, "column": 27 },
+          "end": { "line": 19, "column": 33 }
+        }
+      },
+      {
+        "type": "TSTypeReference",
+        "start": 581,
+        "end": 588,
+        "loc": {
+          "start": { "line": 19, "column": 35 },
+          "end": { "line": 19, "column": 42 }
+        },
+        "typeName": {
+          "type": "Identifier",
+          "start": 581,
+          "end": 588,
+          "loc": {
+            "start": { "line": 19, "column": 35 },
+            "end": { "line": 19, "column": 42 },
+            "identifierName": "ZipCode"
+          },
+          "name": "ZipCode"
+        }
+      }
+    ]
+  }
+}
+
+We gave up on this type:  {
+  "type": "TSTypeReference",
+  "start": 625,
+  "end": 647,
+  "loc": {
+    "start": { "line": 22, "column": 10 },
+    "end": { "line": 22, "column": 32 }
+  },
+  "typeName": {
+    "type": "Identifier",
+    "start": 625,
+    "end": 631,
+    "loc": {
+      "start": { "line": 22, "column": 10 },
+      "end": { "line": 22, "column": 16 },
+      "identifierName": "Record"
+    },
+    "name": "Record"
+  },
+  "typeParameters": {
+    "type": "TSTypeParameterInstantiation",
+    "start": 631,
+    "end": 647,
+    "loc": {
+      "start": { "line": 22, "column": 16 },
+      "end": { "line": 22, "column": 32 }
+    },
+    "params": [
+      {
+        "type": "TSStringKeyword",
+        "start": 632,
+        "end": 638,
+        "loc": {
+          "start": { "line": 22, "column": 17 },
+          "end": { "line": 22, "column": 23 }
+        }
+      },
+      {
+        "type": "TSStringKeyword",
+        "start": 640,
+        "end": 646,
+        "loc": {
+          "start": { "line": 22, "column": 25 },
+          "end": { "line": 22, "column": 31 }
+        }
+      }
+    ]
+  }
+}
+
+We gave up on this type:  {
+  "type": "TSTypeReference",
+  "start": 659,
+  "end": 681,
+  "loc": {
+    "start": { "line": 23, "column": 10 },
+    "end": { "line": 23, "column": 32 }
+  },
+  "typeName": {
+    "type": "Identifier",
+    "start": 659,
+    "end": 665,
+    "loc": {
+      "start": { "line": 23, "column": 10 },
+      "end": { "line": 23, "column": 16 },
+      "identifierName": "Record"
+    },
+    "name": "Record"
+  },
+  "typeParameters": {
+    "type": "TSTypeParameterInstantiation",
+    "start": 665,
+    "end": 681,
+    "loc": {
+      "start": { "line": 23, "column": 16 },
+      "end": { "line": 23, "column": 32 }
+    },
+    "params": [
+      {
+        "type": "TSStringKeyword",
+        "start": 666,
+        "end": 672,
+        "loc": {
+          "start": { "line": 23, "column": 17 },
+          "end": { "line": 23, "column": 23 }
+        }
+      },
+      {
+        "type": "TSStringKeyword",
+        "start": 674,
+        "end": 680,
+        "loc": {
+          "start": { "line": 23, "column": 25 },
+          "end": { "line": 23, "column": 31 }
+        }
+      }
+    ]
+  }
+}
+
+npm WARN deprecated istanbul@0.4.5: This module is no longer maintained, try this instead:
+npm WARN deprecated   npm i nyc
+npm WARN deprecated Visit https://istanbul.js.org/integrations for other alternatives.
+
+added 48 packages, and audited 49 packages in 965ms
+
+1 package is looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+
+> zipcodes@8.0.0 test
+> istanbul cover --print both -- vows --spec ./tests/lookup.js
+
+ 
+  ♢ zipcodes 
+  
+  should export
+    ✓ a functions and objects
+  Marion
+    ✓ should be ok
+  Miami
+    ✓ should be ok
+  Kananaskis
+    ✓ should be ok
+  BC
+    ✓ should be ok
+  Beverly Hills
+    ✓ should be ok
+  distance
+    ✓ should find
+    ✓ should not find
+  lookups
+    ✓ should find by name
+    ✓ should find by state
+    ✓ should find by coordinates
+  radius
+    ✓ should find
+  random
+    ✓ should find a random zipcode object
+ 
+✓ OK » 13 honored (0.411s) 
+  
+=============================================================================
+Writing coverage object [/Users/joshuahoeflich/code/github/joshuaharry/jscontract/workspaces/type-explorer/sandbox/zipcodes/coverage/coverage.json]
+Writing coverage reports at [/Users/joshuahoeflich/code/github/joshuaharry/jscontract/workspaces/type-explorer/sandbox/zipcodes/coverage]
+=============================================================================
+---------------------------------|----------|----------|----------|----------|----------------|
+File                             |  % Stmts | % Branch |  % Funcs |  % Lines |Uncovered Lines |
+---------------------------------|----------|----------|----------|----------|----------------|
+ lib/                            |      100 |      100 |      100 |      100 |                |
+  __ORIGINAL_UNTYPED_MODULE__.js |      100 |      100 |      100 |      100 |                |
+  codes.js                       |      100 |      100 |      100 |      100 |                |
+  codesCanada.js                 |      100 |      100 |      100 |      100 |                |
+  index.js                       |      100 |      100 |      100 |      100 |                |
+  states.js                      |      100 |      100 |      100 |      100 |                |
+---------------------------------|----------|----------|----------|----------|----------------|
+All files                        |      100 |      100 |      100 |      100 |                |
+---------------------------------|----------|----------|----------|----------|----------------|
+
+
+=============================== Coverage summary ===============================
+Statements   : 100% ( 117/117 )
+Branches     : 100% ( 30/30 )
+Functions    : 100% ( 14/14 )
+Lines        : 100% ( 117/117 )
+================================================================================
+ECONTRACTSUCCESS: We compiled this project into contracts, and the tests all passed.
+

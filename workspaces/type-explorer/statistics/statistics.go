@@ -16,6 +16,7 @@ var SANDBOX string = "sandbox"
 var PACKAGE_COMPATABILITY string = "package_compatability"
 var DISABLED_CONTRACTS string = "disabled_contracts"
 var ENABLED_CONTRACTS string = "enabled_contracts"
+var NO_CONTRACTS string = "no_contracts"
 var COMMIT string = "998fe1077af548a7c97fcee5f2057bdb04d3855c"
 var SCRIPT string = "ct"
 var MAX_PROCESSES int = 8
@@ -46,6 +47,7 @@ func fetchDefinitelyTyped() {
 
 func setup() {
 	os.Mkdir(PACKAGE_COMPATABILITY, 0777)
+	os.Mkdir(NO_CONTRACTS, 0777)
 	os.Mkdir(DISABLED_CONTRACTS, 0777)
 	os.Mkdir(ENABLED_CONTRACTS, 0777)
 	cleanSandbox()
@@ -157,10 +159,19 @@ func checkCompatability(packageName string) ScriptResult {
 	return res
 }
 
+func checkNoContract(packageName string) ScriptResult {
+	res := ScriptConfig{
+		packageName:    packageName,
+		scriptArgument: "--nocontract",
+		dirName:        NO_CONTRACTS,
+	}.run()
+	return res
+}
+
 func checkDisabledContract(packageName string) ScriptResult {
 	res := ScriptConfig{
 		packageName:    packageName,
-		scriptArgument: "--disabled-contracts",
+		scriptArgument: "--disabledcontract",
 		dirName:        DISABLED_CONTRACTS,
 	}.run()
 	return res
@@ -249,6 +260,6 @@ func main() {
 	packages := initialPackagesList()
 	chainSteps(
 		packages,
-		[]func(string) ScriptResult{checkCompatability, checkDisabledContract, checkEnabledContract},
+		[]func(string) ScriptResult{checkCompatability, checkNoContract, checkDisabledContract, checkEnabledContract},
 	)
 }

@@ -1,0 +1,40 @@
+npm WARN deprecated source-map-url@0.4.1: See https://github.com/lydell/source-map-url#deprecated
+npm WARN deprecated urix@0.1.0: Please see https://github.com/lydell/urix#deprecated
+npm WARN deprecated resolve-url@0.2.1: https://github.com/lydell/resolve-url#deprecated
+npm WARN deprecated source-map-resolve@0.5.3: See https://github.com/lydell/source-map-resolve#deprecated
+npm WARN deprecated sane@4.1.0: some dependency vulnerabilities fixed, support for node < 10 dropped, and newer ECMAScript syntax/features added
+
+added 505 packages, and audited 506 packages in 6s
+
+27 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+
+> gaussian@1.2.0 test
+> jest
+
+PASS test/gaussian.test.js
+  ✓ test properties (2 ms)
+  ✓ test pdf
+  ✓ test cdf (1 ms)
+  ✓ test ppf (4 ms)
+  ✓ test mul (1 ms)
+  ✓ test div (1 ms)
+  ✓ test rejects non-positive variances (4 ms)
+  ✓ test add (1 ms)
+  ✓ test sub
+  ✓ test scale (1 ms)
+  ✓ test generate samples (1 ms)
+  ✓ test custom RNG
+  ✓ test generated sample distribution (3252 ms)
+  ✓ ceils ppf >= 1
+  ✓ ceils ppf <= 0 (1 ms)
+
+Test Suites: 1 passed, 1 total
+Tests:       15 passed, 15 total
+Snapshots:   0 total
+Time:        4.406 s, estimated 5 s
+Ran all test suites.
+ECONTRACTSUCCESS: We compiled this project into contracts, and the tests all passed.
+

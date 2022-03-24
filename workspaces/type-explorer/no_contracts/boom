@@ -1,0 +1,44 @@
+
+added 206 packages, and audited 207 packages in 3s
+
+21 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+
+> @hapi/boom@9.1.4 test
+> lab -a @hapi/code -t 100 -L -Y
+
+Error requiring file: /Users/joshuahoeflich/code/github/joshuaharry/jscontract/workspaces/type-explorer/sandbox/boom/test/index.js
+DataContract is not defined
+ReferenceError: DataContract is not defined
+    at Object.<anonymous> (/Users/joshuahoeflich/code/github/joshuaharry/jscontract/workspaces/type-explorer/sandbox/boom/lib/index.js:445:17)
+    at Module._compile (node:internal/modules/cjs/loader:1103:14)
+    at Object.require.extensions.<computed> [as .js] (/Users/joshuahoeflich/code/github/joshuaharry/jscontract/workspaces/type-explorer/sandbox/boom/node_modules/@hapi/lab/lib/modules/coverage.js:125:40)
+    at Module.load (node:internal/modules/cjs/loader:981:32)
+    at Function.Module._load (node:internal/modules/cjs/loader:822:12)
+    at Module.require (node:internal/modules/cjs/loader:1005:19)
+    at require (node:internal/modules/cjs/helpers:102:18)
+    at Object.<anonymous> (/Users/joshuahoeflich/code/github/joshuaharry/jscontract/workspaces/type-explorer/sandbox/boom/test/index.js:3:14)
+    at Module._compile (node:internal/modules/cjs/loader:1103:14)
+    at Object.require.extensions.<computed> [as .js] (/Users/joshuahoeflich/code/github/joshuaharry/jscontract/workspaces/type-explorer/sandbox/boom/node_modules/@hapi/lab/lib/modules/coverage.js:131:28)
+    at Module.load (node:internal/modules/cjs/loader:981:32)
+    at Function.Module._load (node:internal/modules/cjs/loader:822:12)
+    at Module.require (node:internal/modules/cjs/loader:1005:19)
+    at require (node:internal/modules/cjs/helpers:102:18)
+    at /Users/joshuahoeflich/code/github/joshuaharry/jscontract/workspaces/type-explorer/sandbox/boom/node_modules/@hapi/lab/lib/cli.js:135:13
+    at Array.forEach (<anonymous>)
+    at Object.internals.traverse (/Users/joshuahoeflich/code/github/joshuaharry/jscontract/workspaces/type-explorer/sandbox/boom/node_modules/@hapi/lab/lib/cli.js:129:15)
+    at Object.exports.run (/Users/joshuahoeflich/code/github/joshuaharry/jscontract/workspaces/type-explorer/sandbox/boom/node_modules/@hapi/lab/lib/cli.js:60:31)
+    at main (/Users/joshuahoeflich/code/github/joshuaharry/jscontract/workspaces/type-explorer/sandbox/boom/node_modules/@hapi/lab/bin/lab:56:50)
+    at Object.<anonymous> (/Users/joshuahoeflich/code/github/joshuaharry/jscontract/workspaces/type-explorer/sandbox/boom/node_modules/@hapi/lab/bin/lab:60:1)
+    at Module._compile (node:internal/modules/cjs/loader:1103:14)
+    at Object.Module._extensions..js (node:internal/modules/cjs/loader:1155:10)
+    at Module.load (node:internal/modules/cjs/loader:981:32)
+    at Function.Module._load (node:internal/modules/cjs/loader:822:12)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:77:12)
+    at node:internal/main/run_main_module:17:47
+ECONTRACTFAILURE: We compiled the project into contracts, and some of the tests failed.
+
+exit status 5
+exit status 5
