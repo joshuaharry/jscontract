@@ -89,7 +89,7 @@ func (res ScriptResult) cleanup() {
 	} else {
 		removeDir = strings.Join([]string{"sandbox", res.packageName}, string(os.PathSeparator))
 	}
-	try(os.RemoveAll(removeDir))
+	os.RemoveAll(removeDir)
 }
 
 type CmdResult struct {
