@@ -1092,7 +1092,14 @@ function pos_choice(blame_object, howmany) {
   return blame_objects;
 }
 
+let should_disable_contracts = false;
+
+const disableContracts = () => {
+  should_disable_contracts = true;
+}
+
 function signal_contract_violation(value, blame_object, message) {
+  if (should_disable_contracts) return true;
   if (typeof blame_object.dead === "boolean") {
     // regular contract violation, no and/or here
     throw_contract_violation(blame_object.pos, message, value);
@@ -1279,3 +1286,4 @@ function CTimports(obj, location) {
 
 exports.CTexports = CTexports;
 exports.CTimports = CTimports;
+exports.disableContracts = disableContracts;

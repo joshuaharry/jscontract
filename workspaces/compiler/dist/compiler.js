@@ -42,11 +42,6 @@ const getAst = (input) => (0, parser_1.parse)(input.code, {
     sourceType: "module",
 });
 const getCode = (ast) => prettier_1.default.format((0, generator_1.default)(ast).code, { parser: "babel" });
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const fail = (el) => {
-    console.error(el);
-    throw new Error("UNEXPECTED ELEMENT");
-};
 const isBackwardsReference = (nodes, node) => node.dependencies.some((dep) => !nodes.find((aNode) => aNode.name === dep));
 const markGraphNodes = (graph) => Object.values(graph).reduce((nodes, node) => nodes.concat(isBackwardsReference(nodes, node)
     ? { ...node, isRecursive: true }
@@ -362,7 +357,7 @@ const tokenMap = {
         if (tokens.length === 0)
             return [];
         if (tokens.length > 1)
-            return fail(tokens);
+            return [];
         const statement = tokens[0];
         return [{ ...statement, isSubExport: statement.existsInJs }];
     },
@@ -373,7 +368,7 @@ const tokenMap = {
     },
     VariableDeclaration(el) {
         if (el.declarations.length !== 1)
-            return fail(el);
+            return [];
         const declaration = el.declarations[0];
         return getContractTokens(declaration);
     },
@@ -523,10 +518,10 @@ const getFinalName = (name) => {
 const getContractName = (name) => `${getFinalName(name)}Contract`;
 exports.ORIGINAL_MODULE_FILE = "./__ORIGINAL_UNTYPED_MODULE__.js";
 const requireContractLibrary = () => [
-    template_1.default.statement(`const CT = require('@jscontract/contract')`)({
+    template_1.default.statement(`var CT = require('@jscontract/contract')`)({
         CT: t.identifier("CT"),
     }),
-    template_1.default.statement(`const originalModule = require(%%replacementName%%)`)({
+    template_1.default.statement(`var originalModule = require(%%replacementName%%)`)({
         replacementName: t.stringLiteral(exports.ORIGINAL_MODULE_FILE),
     }),
 ];
@@ -536,7 +531,7 @@ const getModuleExports = (nodes) => {
         ? template_1.default.statement(`module.exports = %%contract%%.wrap(originalModule)`)({
             contract: getContractName(mainExport.name),
         })
-        : template_1.default.statement(`module.exports = {}`)({});
+        : template_1.default.statement(`module.exports = originalModule;`)({});
 };
 const getSubExport = (node) => template_1.default.statement(`module.exports.%%name%% = %%contract%%.wrap(originalModule.%%name%%)`)({
     name: node.name,
@@ -564,7 +559,7 @@ const extractRefParams = (ref) => {
     var _a;
     const params = (_a = ref === null || ref === void 0 ? void 0 : ref.typeParameters) === null || _a === void 0 ? void 0 : _a.params;
     if (!Array.isArray(params)) {
-        throw new Error(`Could not unwrap parameters on ${ref}!`);
+        return [];
     }
     return params;
 };
@@ -807,7 +802,7 @@ const makeReduceNode = (env) => {
         const contract = mapNodeTypes(node);
         return node.isRecursive ? wrapRecursive(contract) : contract;
     };
-    const reduceNode = (node) => template_1.default.statement(`const %%name%% = %%contract%%`)({
+    const reduceNode = (node) => template_1.default.statement(`var %%name%% = %%contract%%`)({
         name: getContractName(node.name),
         contract: buildContract(node),
     });

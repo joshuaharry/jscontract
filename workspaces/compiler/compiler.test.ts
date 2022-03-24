@@ -124,7 +124,7 @@ describe("Our compiler", () => {
   test("Works on the 7zip-min package", () => {
     gotoFixture("7zip-min");
     const code = compileContracts();
-    expect(code).toMatch("const listContract = CT.CTRec");
+    expect(code).toMatch("var listContract = CT.CTRec");
   });
   test("Works on the base64-arraybuffer", () => {
     gotoFixture("base64-arraybuffer");
@@ -138,7 +138,7 @@ describe("Our compiler", () => {
     const code = compile();
     expect(code).toMatch(`CT.numberCT, { immutable: true,`);
     expect(code).toMatch(
-      `const MyGenericContract = CT.CTFunction(CT.trueCT, [CT.anyCT], CT.nullCT);`
+      `var MyGenericContract = CT.CTFunction(CT.trueCT, [CT.anyCT], CT.nullCT);`
     );
     expect(code).toMatch(
       `{ length: CT.numberCT, prop: { contract: CT.stringCT, index: "string"`
@@ -164,15 +164,15 @@ describe("Our compiler", () => {
   test("Succeeds with some constants", () => {
     gotoFixture("constants");
     const code = compileContracts();
-    expect(code).toMatch(`const CT = require("@jscontract/contract")`);
+    expect(code).toMatch(`var CT = require("@jscontract/contract")`);
     expect(code).toMatch(
-      `const originalModule = require("./__ORIGINAL_UNTYPED_MODULE__.js")`
+      `var originalModule = require("./__ORIGINAL_UNTYPED_MODULE__.js")`
     );
-    expect(code).toMatch(`const numContract = CT.numberCT`);
-    expect(code).toMatch(`const strContract = CT.stringCT`);
-    expect(code).toMatch(`const nilContract = CT.nullCT`);
-    expect(code).toMatch(`const boolContract = CT.booleanCT`);
-    expect(code).toMatch(`module.exports = {}`);
+    expect(code).toMatch(`var numContract = CT.numberCT`);
+    expect(code).toMatch(`var strContract = CT.stringCT`);
+    expect(code).toMatch(`var nilContract = CT.nullCT`);
+    expect(code).toMatch(`var boolContract = CT.booleanCT`);
+    expect(code).toMatch(`module.exports = originalModule`);
     expect(code).toMatch(
       `module.exports.num = numContract.wrap(originalModule.num)`
     );
@@ -219,12 +219,12 @@ describe("Our compiler", () => {
   test("Works with mutually recursive types", () => {
     gotoFixture("recursive-types");
     const code = compile();
-    expect(code).toMatch("const PingContract = CT.CTRec");
+    expect(code).toMatch("var PingContract = CT.CTRec");
   });
   test("Works with delete-empty", () => {
     gotoFixture("delete-empty");
     const code = compile();
-    expect(code).toMatch(`const OptionsContract = CT.CTRec`);
+    expect(code).toMatch(`var OptionsContract = CT.CTRec`);
   });
   test("Works with a package written in flow", () => {
     gotoFixture("http-codes");

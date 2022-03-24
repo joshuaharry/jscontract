@@ -25,12 +25,6 @@ const getAst = (input: CompilerInput): t.File =>
 const getCode = (ast: t.File): string =>
   prettier.format(generate(ast).code, {parser: "babel"});
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const fail = (el: any) => {
-  console.error(el);
-  throw new Error("UNEXPECTED ELEMENT");
-};
-
 interface GraphNode {
   name: string;
   dependencies: string[];
@@ -471,7 +465,7 @@ const tokenMap: Record<string, TokenHandler> = {
     if (!el.declaration) return [];
     const tokens = getContractTokens(el.declaration);
     if (tokens.length === 0) return [];
-    if (tokens.length > 1) return fail(tokens);
+    if (tokens.length > 1) return [];
     const statement = tokens[0];
     return [{...statement, isSubExport: statement.existsInJs}];
   },
@@ -480,7 +474,7 @@ const tokenMap: Record<string, TokenHandler> = {
     return [{type: null, existsInJs: true, isSubExport: false, isMainExport: true, name: el.declaration.name, typeToMark: null}];
   },
   VariableDeclaration(el: t.VariableDeclaration) {
-    if (el.declarations.length !== 1) return fail(el);
+    if (el.declarations.length !== 1) return [];
     const declaration = el.declarations[0];
     return getContractTokens(declaration);
   },
@@ -665,10 +659,10 @@ const getContractName = (name: string): string =>
 export const ORIGINAL_MODULE_FILE = "./__ORIGINAL_UNTYPED_MODULE__.js";
 
 const requireContractLibrary = (): t.Statement[] => [
-  template.statement(`const CT = require('@jscontract/contract')`)({
+  template.statement(`var CT = require('@jscontract/contract')`)({
     CT: t.identifier("CT"),
   }),
-  template.statement(`const originalModule = require(%%replacementName%%)`)({
+  template.statement(`var originalModule = require(%%replacementName%%)`)({
     replacementName: t.stringLiteral(ORIGINAL_MODULE_FILE),
   }),
 ];
@@ -679,7 +673,7 @@ const getModuleExports = (nodes: ContractNode[]): t.Statement => {
     ? template.statement(`module.exports = %%contract%%.wrap(originalModule)`)({
       contract: getContractName(mainExport.name),
     })
-    : template.statement(`module.exports = {}`)({});
+    : template.statement(`module.exports = originalModule;`)({});
 };
 
 const getSubExport = (node: ContractNode): t.Statement =>
@@ -723,7 +717,7 @@ const nameReference = (refName: string): t.Expression => {
 const extractRefParams = (ref: t.TSTypeReference): t.TSType[] => {
   const params = ref?.typeParameters?.params;
   if (!Array.isArray(params)) {
-    throw new Error(`Could not unwrap parameters on ${ref}!`);
+    return [];
   }
   return params;
 };
@@ -1011,7 +1005,7 @@ const makeReduceNode = (env: ContractGraph) => {
   };
 
   const reduceNode = (node: ContractNode): t.Statement =>
-    template.statement(`const %%name%% = %%contract%%`)({
+    template.statement(`var %%name%% = %%contract%%`)({
       name: getContractName(node.name),
       contract: buildContract(node),
     });

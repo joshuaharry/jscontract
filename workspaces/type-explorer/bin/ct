@@ -181,8 +181,10 @@ compile_contracts() {
   cp "$TOPLEVEL_DIR/DefinitelyTyped/types/$1/index.d.ts" "$PWD"
   move_main;
   run_compiler;
-  if [ "$2" = "--disabled-contracts" ]; then
+  if [ "$2" = "--nocontract" ]; then
     sed -i -e 's/@jscontract\/contract/@jscontract\/nocontract/g' __COMPILATION_RESULT__.js;
+  elif [ "$2" = "--disabledcontract" ]; then
+    sed -i -e 's/@jscontract\/contract/@jscontract\/disabledcontract/g' __COMPILATION_RESULT__.js;
   fi
   mv ./__COMPILATION_RESULT__.js "$(get_main)";
 }
