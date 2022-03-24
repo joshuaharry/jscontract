@@ -121,7 +121,6 @@ func outputResult(cmd *exec.Cmd) CmdResult {
 
 func output(cmd *exec.Cmd) CmdResult {
 	timeout := make(chan CmdResult, 1)
-	defer close(timeout)
 	go func() {
 		answer := outputResult(cmd)
 		timeout <- answer
