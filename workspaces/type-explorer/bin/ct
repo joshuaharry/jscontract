@@ -153,7 +153,7 @@ get_main() {
 
 JS_CODE="let path = require('path'); let json = require('./package.json').main; let mainStr = json ? json.endsWith('js') ? json : json + '.js' : 'index.js'; let parts = mainStr.split(path.sep); parts[parts.length - 1] = '__ORIGINAL_UNTYPED_MODULE__.js'; process.stdout.write(parts.join(path.sep));"
 move_main() {
-  if [ -f "__ORIGINAL_UNTYPED_MODULE__.js" ]; then
+  if [ -f  "$(dirname "$(get_main)")"/__ORIGINAL_UNTYPED_MODULE__.js ]; then
     # Do nothing, we've run the compiler before.
     printf "";
   elif [ -f "$(get_main)" ]; then
