@@ -71,6 +71,7 @@ type ScriptConfig struct {
 	packageName    string
 	scriptArgument string
 	dirName        string
+	timeout        int
 }
 
 func (config ScriptConfig) path() string {
@@ -119,7 +120,7 @@ func outputResult(cmd *exec.Cmd) CmdResult {
 
 }
 
-func output(cmd *exec.Cmd) CmdResult {
+func output(cmd *exec.Cmd, timeoutInMinutes int) CmdResult {
 	timeout := make(chan CmdResult, 1)
 	go func() {
 		answer := outputResult(cmd)
@@ -128,7 +129,7 @@ func output(cmd *exec.Cmd) CmdResult {
 	select {
 	case res := <-timeout:
 		return res
-	case <-time.After(2 * time.Minute):
+	case <-time.After(time.Duration(timeoutInMinutes) * time.Minute):
 		return CmdResult{
 			message: "Timeout.",
 			error:   errors.New("fatal timeout"),
@@ -139,7 +140,7 @@ func output(cmd *exec.Cmd) CmdResult {
 func (config ScriptConfig) run() ScriptResult {
 	log.Println(config.packageName, ": running", config.scriptArgument)
 	cmd := exec.Command(SCRIPT, config.packageName, config.scriptArgument)
-	out := output(cmd)
+	out := output(cmd, config.timeout)
 	os.WriteFile(config.path(), out.bytes(), 0644)
 	log.Println(config.packageName, ": finished", config.scriptArgument)
 	return ScriptResult{
@@ -153,6 +154,7 @@ func checkCompatability(packageName string) ScriptResult {
 		packageName:    packageName,
 		scriptArgument: "--check-testability",
 		dirName:        PACKAGE_COMPATABILITY,
+		timeout:        2,
 	}.run()
 	res.cleanup()
 	return res
@@ -163,6 +165,7 @@ func checkNoContract(packageName string) ScriptResult {
 		packageName:    packageName,
 		scriptArgument: "--nocontract",
 		dirName:        NO_CONTRACTS,
+		timeout:        5,
 	}.run()
 	return res
 }
@@ -172,6 +175,7 @@ func checkDisabledContract(packageName string) ScriptResult {
 		packageName:    packageName,
 		scriptArgument: "--disabledcontract",
 		dirName:        DISABLED_CONTRACTS,
+		timeout:        5,
 	}.run()
 	return res
 }
@@ -181,6 +185,7 @@ func checkEnabledContract(packageName string) ScriptResult {
 		packageName:    packageName,
 		scriptArgument: "--enabled-contracts",
 		dirName:        ENABLED_CONTRACTS,
+		timeout:        5,
 	}.run()
 	return res
 }
