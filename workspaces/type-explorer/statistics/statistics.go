@@ -56,15 +56,29 @@ func setup() {
 }
 
 func initialPackagesList() []string {
-	files, err := ioutil.ReadDir(strings.Join([]string{"DefinitelyTyped", "types"}, string(os.PathSeparator)))
+	var pkgs []string
+	if len(os.Args) <= 0 {
+		files, err := ioutil.ReadDir(strings.Join([]string{"DefinitelyTyped", "types"}, string(os.PathSeparator)))
+		if err != nil {
+			log.Fatal(err)
+		}
+		for _, f := range files {
+			pkgs = append(pkgs, f.Name())
+		}
+		return pkgs
+	}
+	bytes, err := ioutil.ReadFile(os.Args[1])
 	if err != nil {
 		log.Fatal(err)
 	}
-	out := []string{}
-	for _, f := range files {
-		out = append(out, f.Name())
+	str := string(bytes)
+	res := strings.Split(str, "\n")
+	for _, pkg := range res {
+		if pkg != "" {
+			pkgs = append(pkgs, pkg)
+		}
 	}
-	return out
+	return pkgs
 }
 
 type ScriptConfig struct {
