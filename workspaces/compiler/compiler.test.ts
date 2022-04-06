@@ -124,7 +124,7 @@ describe("Our compiler", () => {
   test("Works on the 7zip-min package", () => {
     gotoFixture("7zip-min");
     const code = compileContracts();
-    expect(code).toMatch("var listContract = CT.CTRec");
+    expect(code).toMatch("listContract = CT.CTRec");
   });
   test("Works on the base64-arraybuffer", () => {
     gotoFixture("base64-arraybuffer");
@@ -138,7 +138,7 @@ describe("Our compiler", () => {
     const code = compile();
     expect(code).toMatch(`CT.numberCT, { immutable: true,`);
     expect(code).toMatch(
-      `var MyGenericContract = CT.CTFunction(CT.trueCT, [CT.anyCT], CT.nullCT);`
+      `MyGenericContract = CT.CTFunction(CT.trueCT, [CT.anyCT], CT.nullCT);`
     );
     expect(code).toMatch(
       `{ length: CT.numberCT, prop: { contract: CT.stringCT, index: "string"`
@@ -168,10 +168,10 @@ describe("Our compiler", () => {
     expect(code).toMatch(
       `var originalModule = require("./__ORIGINAL_UNTYPED_MODULE__.js")`
     );
-    expect(code).toMatch(`var numContract = CT.numberCT`);
-    expect(code).toMatch(`var strContract = CT.stringCT`);
-    expect(code).toMatch(`var nilContract = CT.nullCT`);
-    expect(code).toMatch(`var boolContract = CT.booleanCT`);
+    expect(code).toMatch(`numContract = CT.numberCT`);
+    expect(code).toMatch(`strContract = CT.stringCT`);
+    expect(code).toMatch(`nilContract = CT.nullCT`);
+    expect(code).toMatch(`boolContract = CT.booleanCT`);
     expect(code).toMatch(`module.exports = originalModule`);
     expect(code).toMatch(
       `module.exports.num = numContract.wrap(originalModule.num)`
@@ -219,12 +219,12 @@ describe("Our compiler", () => {
   test("Works with mutually recursive types", () => {
     gotoFixture("recursive-types");
     const code = compile();
-    expect(code).toMatch("var PingContract = CT.CTRec");
+    expect(code).toMatch("PingContract = CT.CTRec");
   });
   test("Works with delete-empty", () => {
     gotoFixture("delete-empty");
     const code = compile();
-    expect(code).toMatch(`var OptionsContract = CT.CTRec`);
+    expect(code).toMatch(`OptionsContract = CT.CTRec`);
   });
   test("Works with a package written in flow", () => {
     gotoFixture("http-codes");
@@ -252,5 +252,13 @@ describe("Our compiler", () => {
     gotoFixture('absolute');
     const code = compile();
     expect(code).toMatch('module.exports = absoluteContract');
+  });
+  test("Can handle the csurf package", () => {
+    const originalLog = console.log;
+    console.log = jest.fn();
+    gotoFixture('csurf');
+    const code = compile();
+    expect(code).toMatch(`var csurfContract = CT.anyCT`);
+    console.log = originalLog;
   });
 });

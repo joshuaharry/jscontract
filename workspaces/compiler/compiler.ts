@@ -1005,7 +1005,7 @@ const makeReduceNode = (env: ContractGraph) => {
   };
 
   const reduceNode = (node: ContractNode): t.Statement =>
-    template.statement(`var %%name%% = %%contract%%`)({
+    template.statement(`%%name%% = %%contract%%`)({
       name: getContractName(node.name),
       contract: buildContract(node),
     });
@@ -1022,11 +1022,21 @@ const compileTypes = (
   return nodes.map(reduceNode);
 };
 
+const produceIdentifiers = (statements: ContractNode[]): t.Statement[] => {
+  const names = statements.map((state) => getContractName(state.name));
+  return names.map((name) => {
+    return template.statement(`var %%name%% = CT.anyCT`)({
+      name,
+    })
+  })
+}
+
 const getContractAst = (graph: ContractGraph): t.File => {
   const ast = parse("");
   const statements = markGraphNodes(graph) as ContractNode[];
   ast.program.body = [
     ...requireContractLibrary(),
+    ...produceIdentifiers(statements),
     ...compileTypes(statements, graph),
     ...exportContracts(statements),
   ];
