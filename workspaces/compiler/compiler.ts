@@ -418,6 +418,23 @@ const tokenMap: Record<string, TokenHandler> = {
   TSModuleBlock(el: t.TSModuleBlock) {
     return reduceTokens(el.body);
   },
+  ClassDeclaration(el: t.ClassDeclaration) {
+    const {name} = el.id;
+    // TODO: Handle classes correctly, for now we're typing them as `any`.
+    return [
+      {
+        name,
+        type: {
+          hint: 'flat',
+          syntax: t.tsAnyKeyword(),
+        },
+        typeToMark: null,
+        isSubExport: false,
+        isMainExport: false,
+        existsInJs: true,
+      }
+    ]
+  },
   TSModuleDeclaration(el: t.TSModuleDeclaration) {
     const tokens = getContractTokens(el.body);
     if (el.id.type !== "Identifier") return [];

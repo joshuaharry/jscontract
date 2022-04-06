@@ -261,4 +261,9 @@ describe("Our compiler", () => {
     expect(code).toMatch(`var csurfContract = CT.anyCT`);
     console.log = originalLog;
   });
+  test("Can handle the dashdash package", () => {
+    gotoFixture('dashdash');
+    const code = compile();
+    expect(code).toMatch(`ParserContract = CT.anyCT`);
+  });
 });
