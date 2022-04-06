@@ -56,8 +56,9 @@ func setup() {
 }
 
 func initialPackagesList() []string {
+	log.Println(os.Args)
 	var pkgs []string
-	if len(os.Args) <= 0 {
+	if len(os.Args) <= 1 {
 		files, err := ioutil.ReadDir(strings.Join([]string{"DefinitelyTyped", "types"}, string(os.PathSeparator)))
 		if err != nil {
 			log.Fatal(err)
