@@ -831,7 +831,7 @@ function CTObject(ctfields) {
   for (let k in ctfields) {
     const p = ctfields[k];
 
-    if ("contract" in p) {
+    if (typeof p === 'object' && 'contract' in p) {
       if (p.index === "string") {
         stringIndexContract = CTCoerce(p.contract, k + "@CTObject");
       } else if (p.index === "number") {
