@@ -802,7 +802,7 @@ const makeReduceNode = (env) => {
         const contract = mapNodeTypes(node);
         return node.isRecursive ? wrapRecursive(contract) : contract;
     };
-    const reduceNode = (node) => template_1.default.statement(`var %%name%% = %%contract%%`)({
+    const reduceNode = (node) => template_1.default.statement(`%%name%% = %%contract%%`)({
         name: getContractName(node.name),
         contract: buildContract(node),
     });
@@ -813,11 +813,20 @@ const compileTypes = (nodes, graph) => {
     const reduceNode = makeReduceNode(graph);
     return nodes.map(reduceNode);
 };
+const produceIdentifiers = (statements) => {
+    const names = statements.map((state) => getContractName(state.name));
+    return names.map((name) => {
+        return template_1.default.statement(`var %%name%% = CT.anyCT`)({
+            name,
+        });
+    });
+};
 const getContractAst = (graph) => {
     const ast = (0, parser_1.parse)("");
     const statements = (0, exports.markGraphNodes)(graph);
     ast.program.body = [
         ...requireContractLibrary(),
+        ...produceIdentifiers(statements),
         ...compileTypes(statements, graph),
         ...exportContracts(statements),
     ];
