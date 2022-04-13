@@ -80,7 +80,9 @@ link_to_true() {
 ignore_linters() {
   link_to_true eslint
   link_to_true jshint
+  link_to_true semistandard
   link_to_true standard
+  link_to_true xo
 }
 
 create_sandbox() {
