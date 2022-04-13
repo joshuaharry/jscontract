@@ -69,6 +69,20 @@ run_compiler() {
   node "$(dirname "$TOPLEVEL_DIR")"/compiler/dist/compiler.js
 }
 
+link_to_true() {
+  if [ -f "$PWD"/node_modules/.bin/"$1" ]; then
+    printf "%s\n%s\n" "#!/bin/sh" "echo ignore" > "$PWD"/node_modules/.bin/"$1"
+  else
+    echo "$PWD"/node_modules/.bin/"$1"
+  fi
+}
+
+ignore_linters() {
+  link_to_true eslint
+  link_to_true jshint
+  link_to_true standard
+}
+
 create_sandbox() {
   if [ ! -d "$TOPLEVEL_DIR"/sandbox/"${1:?}" ]; then
     mkdir -p "$TOPLEVEL_DIR"/sandbox/"${1:?}"
@@ -115,6 +129,7 @@ check_vanilla_package() {
   if [ ! -d node_modules ]; then
     npm install;
   fi
+  ignore_linters;
   if [ -z "$(jq <"$PWD"/package.json ".scripts.test")" ]; then
     fail_no_tests "$@"
   fi
@@ -128,6 +143,7 @@ check_contract_package() {
   if [ ! -d node_modules ]; then
     npm install;
   fi
+  ignore_linters;
   run_build;
   if npm test; then
     succeed_contract
@@ -160,6 +176,8 @@ move_main() {
     mv "$(get_main)" "$(node -e "$JS_CODE")"
   elif [ -f "$(get_main)".js ]; then
     mv "$(get_main)".js "$(node -e "$JS_CODE")"
+  elif [ -f "$(get_main)"/index.js ]; then
+    mv "$(get_main)"/index.js "$(node -e "$JS_CODE")"
   else
     fail_missing_main
   fi
