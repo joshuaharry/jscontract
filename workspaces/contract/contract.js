@@ -953,13 +953,15 @@ function CTCoerce(obj, who) {
   if (typeof obj === "function") {
     return CTCoerce(CTFlat(obj), who);
   } else if (obj === true) {
+    const alwaystrue = (v) => true
     return CTCoerce(
-      CTFlat((v) => true),
+      CTFlat(alwaystrue),
       who
     );
   } else if (isNumber(obj)) {
+    const constnumber = (v) => obj === v;
     return CTCoerce(
-      CTFlat((v) => obj === v),
+      CTFlat(constnumber),
       who
     );
   } else {
@@ -1031,11 +1033,11 @@ blame_object =
     dead : (or/c false                      -- not involved in or/and contract
                 { dead : (or/c false        -- still alive
                                string) } )  -- dead with this error message
-    pos_state: (or/c false          -- no and/or in play
-                     blame_object)  -- our sibling in the or/and
+    pos_state: (or/c false                   -- no and/or in play
+                     (listof blame_object))  -- our siblings in the or/and
     neg_state: same as pos_state
   }
-// INVARIANT: (dead != false) <=> (pos_state != false) or (neg_state != false)
+// INVARIANT: (dead != false) <=> ((pos_state != false) or (neg_state != false))
 */
 
 function new_blame_object(pos, neg) {
