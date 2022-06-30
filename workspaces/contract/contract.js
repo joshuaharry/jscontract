@@ -851,7 +851,7 @@ function CTObject(ctfields) {
   for (let k in ctfields) {
     const p = ctfields[k];
 
-    if (typeof p === 'object' && 'contract' in p) {
+    if ("contract" in p) {
       if (p.index === "string") {
         stringIndexContract = CTCoerce(p.contract, k + "@CTObject");
       } else if (p.index === "number") {
@@ -1283,6 +1283,7 @@ exports.ObjectCT = ObjectCT;
 exports.BigIntCT = BigIntCT;
 exports.RegExpCT = RegExpCT;
 
+exports.CT = CT;
 exports.CTObject = CTObject;
 exports.CTInterface = CTObject;
 exports.CTOr = CTOr;
