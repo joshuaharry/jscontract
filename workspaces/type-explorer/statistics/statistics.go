@@ -47,12 +47,7 @@ func fetchDefinitelyTyped() {
 }
 
 func setup() {
-	os.Mkdir(PACKAGE_COMPATABILITY, 0777)
-	os.Mkdir(NO_CONTRACTS, 0777)
-	os.Mkdir(DISABLED_CONTRACTS, 0777)
-	os.Mkdir(ENABLED_CONTRACTS, 0777)
-	cleanSandbox()
-	os.Mkdir(SANDBOX, 0777)
+	os.Mkdir(RANDOM_TESTING, 0777)
 	fetchDefinitelyTyped()
 }
 
