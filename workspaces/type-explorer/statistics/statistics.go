@@ -13,6 +13,7 @@ import (
 
 var VERBOSE bool = false
 var SANDBOX string = "sandbox"
+var RANDOM_TESTING string = "random_testing"
 var PACKAGE_COMPATABILITY string = "package_compatability"
 var DISABLED_CONTRACTS string = "disabled_contracts"
 var ENABLED_CONTRACTS string = "enabled_contracts"
@@ -100,11 +101,11 @@ type ScriptResult struct {
 
 func (res ScriptResult) cleanup() {
 	var removeDir string
-	if res.passed {
-		removeDir = strings.Join([]string{"sandbox", res.packageName, "node_modules"}, string(os.PathSeparator))
-	} else {
-		removeDir = strings.Join([]string{"sandbox", res.packageName}, string(os.PathSeparator))
+	home, err := os.UserHomeDir()
+	if err != nil {
+		log.Fatalln(err)
 	}
+	removeDir = strings.Join([]string{home, "ReaGenT", "test", "benchmarks", res.packageName}, string(os.PathSeparator))
 	os.RemoveAll(removeDir)
 }
 
@@ -162,6 +163,17 @@ func (config ScriptConfig) run() ScriptResult {
 		packageName: config.packageName,
 		passed:      out.error == nil,
 	}
+}
+
+func randomTesting(packageName string) ScriptResult {
+	res := ScriptConfig{
+		packageName:    packageName,
+		scriptArgument: "",
+		dirName:        RANDOM_TESTING,
+		timeout:        3,
+	}.run()
+	res.cleanup()
+	return res
 }
 
 func checkCompatability(packageName string) ScriptResult {
@@ -279,6 +291,6 @@ func main() {
 	packages := initialPackagesList()
 	chainSteps(
 		packages,
-		[]func(string) ScriptResult{checkCompatability, checkNoContract, checkDisabledContract, checkEnabledContract},
+		[]func(string) ScriptResult{randomTesting},
 	)
 }
