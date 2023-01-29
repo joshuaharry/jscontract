@@ -1,0 +1,257 @@
+#!/usr/bin/env bash
+
+realpath() {
+    [[ $1 = /* ]] && echo "$1" || echo "$PWD/${1#./}"
+}
+
+# Toplevel paths
+TOPLEVEL_DIR="$(dirname "$(realpath "$(dirname "${BASH_SOURCE[0]}")")")"
+REAGENT_DIR="$HOME"/ReaGenT
+
+# Source code messages {{{
+succeed_contract() {
+  printf "ECONTRACTSUCCESS: We compiled this project into contracts, and the tests all passed.\n"
+  exit 0;
+}
+
+succeed_check() {
+  printf "ECHECKSUCCESS: Our compiler can target this package."
+  exit 0;
+}
+
+fail_sandbox() {
+  printf "%s" "ESANDBOX: Could not create sandbox.\n";
+  exit 1
+}
+
+fail_source_code() {
+  printf "ESOURCECODE: Could not download the source code for %s\n" "$1"
+  exit 2
+}
+
+fail_no_tests() {
+  printf "ENOTESTS: Could not find tests for %s\n" "$1"
+  exit 3
+}
+
+fail_bad_tests() {
+  printf "EBADTESTS: The tests for this package fail even without compiling contracts.\n"
+  exit 4
+}
+
+contract_failure() {
+  printf "ECONTRACTFAILURE: We compiled the project into contracts, and some of the tests failed.\n";
+  exit 5
+}
+
+fail_types_missing() {
+  printf "ETYPESMISSING: The types for this package are missing.\n";
+  exit 6
+}
+
+fail_type_complexity() {
+  printf "ETYPECOMPLEXITY: The types for this package are too long.\n";
+  exit 7
+}
+
+fail_no_main() {
+  printf "ENOMAIN: This package has no main entry.\n"; 
+  exit 8
+}
+
+fail_missing_main() {
+  printf "EMISSINGMAIN: This package has a main entry, but we can't find it.\n";
+  exit 9
+}
+# }}}
+
+# Helpers {{{
+run_compiler() {
+  node "$(dirname "$TOPLEVEL_DIR")"/compiler/dist/compiler.js
+}
+
+link_to_true() {
+  if [ -f "$PWD"/node_modules/.bin/"$1" ]; then
+    printf "%s\n%s\n" "#!/bin/sh" "echo ignore" > "$PWD"/node_modules/.bin/"$1"
+  else
+    echo "$PWD"/node_modules/.bin/"$1"
+  fi
+}
+
+ignore_linters() {
+  link_to_true eslint
+  link_to_true jshint
+  link_to_true semistandard
+  link_to_true standard
+  link_to_true xo
+}
+
+create_sandbox() {
+  if [ ! -d "$TOPLEVEL_DIR"/sandbox/"${1:?}" ]; then
+    mkdir -p "$TOPLEVEL_DIR"/sandbox/"${1:?}"
+  fi
+  cd "$TOPLEVEL_DIR"/sandbox/"${1:?}" || fail_sandbox;
+}
+
+download_package() {
+  FIX_NAME="var y = '$1'; y = y.includes('__') ? (() => { var sp = y.split('__'); return \`@\${sp[0]}/\${sp[1]}\`;  })() : y; process.stdout.write(y);"
+  NAME=$(node -e "$FIX_NAME")
+  if ! git clone https://"$(npm view "$NAME" repository.url | grep -o "github.com.*")" "$1"; then
+    fail_source_code "$@"
+  fi
+}
+
+run_build() {
+  if [ "$(jq <"$PWD"/package.json ".scripts.build" | xargs)" != "null" ]; then
+    npm run build
+  fi
+}
+
+copy_files() {
+  shopt -s dotglob
+  mv "$PWD"/"$1"/* "$PWD"
+  shopt -u dotglob
+  rm -d "$PWD"/"$1"
+}
+
+get_package() {
+  if [ ! -f package.json ]; then
+    download_package "$@";
+    copy_files "$@"
+  fi
+}
+
+check_main() {
+  if [ "null" = "$(jq <"$PWD"/package.json ".main")" ] && [ ! -f index.js ]; then
+    fail_no_main;
+  fi
+}
+
+check_vanilla_package() {
+  check_main;
+  if [ ! -d node_modules ]; then
+    npm install;
+  fi
+  ignore_linters;
+  if [ -z "$(jq <"$PWD"/package.json ".scripts.test")" ]; then
+    fail_no_tests "$@"
+  fi
+  run_build;
+  if ! npm test; then
+    fail_bad_tests "$@"
+  fi
+}
+
+check_contract_package() {
+  if [ ! -d node_modules ]; then
+    npm install;
+  fi
+  ignore_linters;
+  run_build;
+  if npm test; then
+    succeed_contract
+  else
+    contract_failure
+  fi
+}
+
+check_type_complexity() {
+  if ! cp "$TOPLEVEL_DIR/DefinitelyTyped/types/$1/index.d.ts" "$PWD"; then
+    fail_types_missing;
+  fi
+  if [ "$(wc -l index.d.ts | grep -oP '\d+')" -gt 150 ]; then
+    fail_type_complexity;
+  fi
+  rm "$PWD"/index.d.ts
+}
+
+GET_MAIN_CODE="let path = require('path'); let json = require('./package.json').main; let mainStr = json ? json.endsWith('js') ? json : json + '.js' : 'index.js'; process.stdout.write(mainStr)"
+get_main() {
+  node -e "$GET_MAIN_CODE";
+}
+
+JS_CODE="let path = require('path'); let json = require('./package.json').main; let mainStr = json ? json.endsWith('js') ? json : json + '.js' : 'index.js'; let parts = mainStr.split(path.sep); parts[parts.length - 1] = '__ORIGINAL_UNTYPED_MODULE__.js'; process.stdout.write(parts.join(path.sep));"
+move_main() {
+  if [ -f  "$(dirname "$(get_main)")"/__ORIGINAL_UNTYPED_MODULE__.js ]; then
+    # Do nothing, we've run the compiler before.
+    printf "";
+  elif [ -f "$(get_main)" ]; then
+    mv "$(get_main)" "$(node -e "$JS_CODE")"
+  elif [ -f "$(get_main)".js ]; then
+    mv "$(get_main)".js "$(node -e "$JS_CODE")"
+  elif [ -f "$(get_main)"/index.js ]; then
+    mv "$(get_main)"/index.js "$(node -e "$JS_CODE")"
+  else
+    fail_missing_main
+  fi
+}
+
+export_default_star() {
+  cat << EOF > __TRANSIENT_SEMANTICS__.ts
+import t from 'ts-runtime/lib';
+export * from "$1";
+import defaultFn from "$1";
+export default defaultFn;
+EOF
+}
+
+export_default_only() {
+  cat << EOF > __TRANSIENT_SEMANTICS__.ts
+import t from 'ts-runtime/lib';
+import defaultFn from "$1";
+module.exports = defaultFn;
+EOF
+}
+
+compile_contracts() {
+  cp "$TOPLEVEL_DIR/DefinitelyTyped/types/$1/index.d.ts" "$PWD"
+  move_main;
+  run_compiler;
+  if [ "$2" = "--nocontract" ]; then
+    sed -i -e 's/@jscontract\/contract/@jscontract\/nocontract/g' __COMPILATION_RESULT__.js;
+  elif [ "$2" = "--disabledcontract" ]; then
+    sed -i -e 's/@jscontract\/contract/@jscontract\/disabledcontract/g' __COMPILATION_RESULT__.js;
+  fi
+  mv ./__COMPILATION_RESULT__.js "$(get_main)";
+}
+
+RANDTEST_MAIN_JS="var path = require('path'); var json = require('./package.json'); var mainFull = path.resolve(json.main); var base = path.basename(process.cwd()); var ans = mainFull.substring(mainFull.indexOf(base), mainFull.length); process.stdout.write(ans);"
+random_test() {
+  cp "$TOPLEVEL_DIR/DefinitelyTyped/types/$1/index.d.ts" "$PWD"
+  cp -r "$PWD" "$REAGENT_DIR"/test/benchmarks/"$1"
+  MAIN="$(node -e "$RANDTEST_MAIN_JS")" 
+  cd "$REAGENT_DIR"
+  cd "$PWD"/test/benchmarks/"$1"
+  npm install
+  if [ "$(jq <"$PWD"/package.json ".scripts.build" | xargs)" != "null" ]; then
+    npm run build
+  fi
+  cd "$REAGENT_DIR"
+  echo "$PWD"/test/benchmarks/"$MAIN" 
+  ./main.sh tstest -js "$PWD"/test/benchmarks/"$MAIN" -ts "$REAGENT_DIR"/test/benchmarks/"$1"/index.d.ts
+}
+# }}}
+
+# Main Functions {{{ 
+do_check() {
+  create_sandbox "$@";
+  get_package "$@";
+  check_vanilla_package "$@";
+  succeed_check;
+}
+
+do_contract() {
+  create_sandbox "$@";
+  get_package "$@";
+  compile_contracts "$@";
+  check_contract_package;
+}
+
+do_randtest() {
+  create_sandbox "$@";
+  get_package "$@";
+  random_test "$@";
+}
+# }}}
+
+do_randtest "$@"
