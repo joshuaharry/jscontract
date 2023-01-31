@@ -1764,4 +1764,59 @@ assert.ok(
   let res = CT.__toString(true);
   assert.ok(res === "true");
 }
+{
+  const res = CT.booleanCT.generate();
+  assert.ok(typeof res === 'boolean');
+}
+{
+  const res = CT.numberCT.generate();
+  assert.ok(typeof res === 'number');
+}
+{
+  const res = CT.objectCT.generate();
+  assert.ok(typeof res === 'object');
+}
+{
+  const res = CT.stringCT.generate();
+  assert.ok(typeof res === 'string');
+}
+{
+  const res = CT.trueCT.generate();
+  assert.ok(res === true)
+}
+{
+  const res = CT.falseCT.generate();
+  assert.ok(res === true)
+}
+{
+  const res = CT.arrayBufferCT.generate();
+  assert.ok(res instanceof ArrayBuffer);
+}
+{
+  const res = CT.undefinedCT.generate();
+  assert.ok(typeof res === 'undefined');
+}
+{
+  const res = CT.errorCT.generate();
+  assert.ok(res instanceof Error);
+}
+{
+  const res = CT.nullCT.generate();
+  assert.ok(res === null);
+}
+{
+  const res = CT.bufferCT.generate();
+  assert.ok(res instanceof Buffer === true);
+}
+{
+  const res = CT.CTFunction(true, [CT.stringCT], CT.numberCT);
+  const fn = res.generate();
+  assert.ok(typeof fn('3') === 'number');
+}
+{
+  const tree = CT.CTObject({ l: CT.stringCT, r: CT.numberCT });
+  const aTree = tree.generate();
+  assert.ok(typeof aTree.l === 'string');
+  assert.ok(typeof aTree.r === 'number');
+}
 console.log("All tests currently passing!");
