@@ -624,6 +624,9 @@ function CTRec(thunk) {
       t: mkWrapper("t"),
       f: mkWrapper("f"),
     };
+  }, () => {
+    const ct = mthunk();
+    return ct.generate();
   });
 }
 
