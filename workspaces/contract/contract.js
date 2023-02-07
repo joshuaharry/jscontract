@@ -47,7 +47,15 @@ class CT {
 
     if (typeof this.generateDomainForRandomTest === "function") {
       res.randomTest = () => {
-        return res(...this.generateDomainForRandomTest());
+        try {
+          const domain = this.generateDomainForRandomTest();
+          return res(...domain);
+        } catch (err) {
+          console.error(err);
+          if (err instanceof ContractError) {
+            throw err;
+          }
+        }
       };
     }
     return res;
@@ -321,11 +329,16 @@ function CTFunction(self, domain, range) {
     const randomDomain = domain.map((contract) => {
       if (contract.generate) {
         return contract.generate();
-      } else if ('contract' in contract) {
-        return contract['contract'].generate();
+      } else if ("contract" in contract && "dotdotdot" in contract) {
+        const arraySize = Math.floor(Math.random() * 10) + 1;
+        return Array.from({ length: arraySize }).map(() =>
+          contract["contract"].generate()
+        );
+      } else if ("contract" in contract) {
+        return contract["contract"].generate();
       } else {
         console.error(contract);
-        throw new Error('FATAL: Could not randomly generate contract.');
+        throw new Error("FATAL: Could not randomly generate contract.");
       }
     });
     return randomDomain;
@@ -666,14 +679,16 @@ function CTRec(thunk) {
 }
 
 const insertGeneratorForRandomBranchOfUnion = (ct, args) => {
-  const allHaveDomain = args.every(arg => arg.generateDomainForRandomTest !== undefined);
+  const allHaveDomain = args.every(
+    (arg) => arg.generateDomainForRandomTest !== undefined
+  );
   if (allHaveDomain) {
     ct.generateDomainForRandomTest = () => {
-      const aDomain = args[Math.floor(Math.random()*args.length)];
+      const aDomain = args[Math.floor(Math.random() * args.length)];
       return aDomain.generateDomainForRandomTest();
     };
   }
-}
+};
 
 /*---------------------------------------------------------------------*/
 /*    CTAnd ....                                                       */

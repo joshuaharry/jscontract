@@ -15,6 +15,10 @@ const findTestableExports = (objectOrFunction, name) => {
 
 findTestableExports(require('.'), require('./package.json').name);
 
+if (testableExports.length === 0) {
+  console.log('Found no tests, aborting.');
+  process.exit(0);
+}
 
 console.log("Starting random tests...");
 
