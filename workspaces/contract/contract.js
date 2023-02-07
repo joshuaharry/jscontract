@@ -318,7 +318,17 @@ function CTFunction(self, domain, range) {
     }
   );
   ct.generateDomainForRandomTest = () => {
-    return domain.map((contract) => contract.generate());
+    const randomDomain = domain.map((contract) => {
+      if (contract.generate) {
+        return contract.generate();
+      } else if ('contract' in contract) {
+        return contract['contract'].generate();
+      } else {
+        console.error(contract);
+        throw new Error('FATAL: Could not randomly generate contract.');
+      }
+    });
+    return randomDomain;
   };
   return ct;
 }

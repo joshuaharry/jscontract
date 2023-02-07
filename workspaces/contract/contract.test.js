@@ -1865,4 +1865,9 @@ assert.ok(
   const wrapped = fn.wrap((x) => 'NOT_A_NUMBER');
   assert.throws(() => wrapped.randomTest());
 }
+{
+  const fn = CT.CTFunction(true, [{ contract: CT.stringCT, dotdotdot: true }], CT.numberCT);
+  const wrapped = fn.wrap((...args) => Number.parseInt(args[0] || '10', 10));
+  wrapped.randomTest();
+}
 console.log('All tests are currently passing!');

@@ -1,12 +1,20 @@
-const thisModule = require(".");
+const testableExports = [];
 
-const testableExports = Object.keys(thisModule)
-  .filter((anExport) => {
-    return typeof thisModule[anExport].randomTest === "function";
-  })
-  .map((canTest) => {
-    return thisModule[canTest];
-  });
+const findTestableExports = (objectOrFunction, name) => {
+  const theType = typeof objectOrFunction;
+  if (theType === 'function') {
+    if (typeof objectOrFunction.randomTest === 'function') {
+      testableExports.push({ name: name, fn: objectOrFunction });
+    }
+  } else if (theType === 'object' && theType !== null) {
+    for (const [key, maybeObj] of Object.entries(objectOrFunction)) {
+      findTestableExports(maybeObj, key);
+    }
+  }
+}
+
+findTestableExports(require('.'), require('./package.json').name);
+
 
 console.log("Starting random tests...");
 
@@ -14,7 +22,8 @@ console.log("Starting random tests...");
  * Another process will need to kill this process.
  */
 while (true) {
-  for (const testableExport of testableExports) {
-    testableExport.randomTest();
+  for (const { name, fn } of testableExports) {
+    console.log(`Testing ${name}...`);
+    fn.randomTest();
   }
 }
