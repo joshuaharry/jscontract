@@ -43,7 +43,14 @@ class CT {
     const { t: tval, f: fval } = this.wrapper(
       new_blame_object(locationt, locationf)
     );
-    return tval.ctor(value);
+    const res = tval.ctor(value);
+
+    if (typeof this.generateDomainForRandomTest === "function") {
+      res.randomTest = () => {
+        return res(...this.generateDomainForRandomTest());
+      };
+    }
+    return res;
   }
 }
 
@@ -215,7 +222,7 @@ function CTFunction(self, domain, range) {
     return typeof x === "function";
   }
 
-  return new CT(
+  const ct = new CT(
     "CTFunction",
     firstOrder,
     function (blame_object) {
@@ -310,6 +317,10 @@ function CTFunction(self, domain, range) {
       };
     }
   );
+  ct.generateDomainForRandomTest = () => {
+    return domain.map((contract) => contract.generate());
+  };
+  return ct;
 }
 
 /*---------------------------------------------------------------------*/
@@ -612,22 +623,46 @@ function CTRec(thunk) {
     return mthunk().firstOrder(x);
   }
 
-  return new CT("CTRec", firstOrder, function (blame_object) {
-    let ei = false;
-    function mkWrapper(kt) {
-      return new CTWrapper(function (value) {
-        if (!ei) ei = mthunk().wrapper(blame_object);
-        return ei[kt].ctor(value);
-      });
+  const ct = new CT(
+    "CTRec",
+    firstOrder,
+    function (blame_object) {
+      let ei = false;
+      function mkWrapper(kt) {
+        return new CTWrapper(function (value) {
+          if (!ei) ei = mthunk().wrapper(blame_object);
+          return ei[kt].ctor(value);
+        });
+      }
+      return {
+        t: mkWrapper("t"),
+        f: mkWrapper("f"),
+      };
+    },
+    () => {
+      const ct = mthunk();
+      return ct.generate();
     }
-    return {
-      t: mkWrapper("t"),
-      f: mkWrapper("f"),
-    };
-  }, () => {
-    const ct = mthunk();
-    return ct.generate();
+  );
+  Object.defineProperty(ct, "generateDomainForRandomTest", {
+    get() {
+      const ct = mthunk();
+      if (ct.generateDomainForRandomTest) {
+        return ct.generateDomainForRandomTest;
+      }
+    },
   });
+  return ct;
+}
+
+const insertGeneratorForRandomBranchOfUnion = (ct, args) => {
+  const allHaveDomain = args.every(arg => arg.generateDomainForRandomTest !== undefined);
+  if (allHaveDomain) {
+    ct.generateDomainForRandomTest = () => {
+      const aDomain = args[Math.floor(Math.random()*args.length)];
+      return aDomain.generateDomainForRandomTest();
+    };
+  }
 }
 
 /*---------------------------------------------------------------------*/
@@ -635,7 +670,7 @@ function CTRec(thunk) {
 /*---------------------------------------------------------------------*/
 function CTAnd(...args) {
   const argcs = args.map((a) => CTCoerce(a, "CTAnd"));
-  return new CT(
+  const ct = new CT(
     "CTAnd",
     (x) => {
       for (let i = 0; i < argcs.length; ++i) {
@@ -711,6 +746,8 @@ function CTAnd(...args) {
       return args[0].generate();
     }
   );
+  insertGeneratorForRandomBranchOfUnion(ct, args);
+  return ct;
 }
 
 /*---------------------------------------------------------------------*/
@@ -742,7 +779,8 @@ function CTOrExplicitChoice(lchoose, left, rchoose, right) {
         t: mkWrapper(false),
         f: mkWrapper(true),
       };
-    }, () => {
+    },
+    () => {
       return lchoose.generate();
     }
   );
@@ -756,7 +794,7 @@ function CTOr(...args) {
     }
     return false;
   };
-  return new CT("CTOr", or_first_order, function (blame_object) {
+  const ct = new CT("CTOr", or_first_order, function (blame_object) {
     function mkWrapper(swap) {
       const kt = swap ? "f" : "t";
       function do_wrapping(target, blame_objects) {
@@ -807,6 +845,8 @@ function CTOr(...args) {
       f: mkWrapper(true),
     };
   });
+  insertGeneratorForRandomBranchOfUnion(ct, args);
+  return ct;
 }
 
 /*---------------------------------------------------------------------*/
