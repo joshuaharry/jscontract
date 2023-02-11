@@ -7,6 +7,8 @@ realpath() {
 # Toplevel paths
 TOPLEVEL_DIR="$(dirname "$(realpath "$(dirname "${BASH_SOURCE[0]}")")")"
 
+RANDOM_TEST_FILE="$(dirname "$TOPLEVEL_DIR")"/contract/runTests.js
+
 # Source code messages {{{
 succeed_contract() {
   printf "ECONTRACTSUCCESS: We compiled this project into contracts, and the tests all passed.\n"
@@ -213,6 +215,11 @@ compile_contracts() {
   fi
   mv ./__COMPILATION_RESULT__.js "$(get_main)";
 }
+
+run_random_test() {
+  cp "$RANDOM_TEST_FILE" "$PWD"
+  timeout 120 node runTests.js
+}
 # }}}
 
 # Main Functions {{{ 
@@ -229,10 +236,19 @@ do_contract() {
   compile_contracts "$@";
   check_contract_package;
 }
+
+do_random_test() {
+  create_sandbox "$@";
+  get_package "$@";
+  compile_contracts "$@";
+  run_random_test;
+}
 # }}}
 
 if [ "$2" = "--check-testability" ]; then
   do_check "$@";
+elif [ "$2" = "--random-test" ]; then
+  do_random_test "$@";
 else
   do_contract "$@";
 fi
