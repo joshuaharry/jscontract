@@ -1820,54 +1820,48 @@ assert.ok(
   assert.ok(typeof aTree.r === 'number');
 }
 {
-  const fn = CT.CTFunction(true, [CT.stringCT], CT.numberCT);
-  const wrapped = fn.wrap((x) => Number.parseInt(x, 10));
-  assert.ok(typeof wrapped.randomTest === 'function');
+  const domain = [{ contract: CT.stringCT, dotdotdot: true }];
+  const fn = CT.CTFunction(true, domain, CT.numberCT);
+  assert.ok(domain === fn.domain);
 }
 {
-  const fn = CT.CTFunction(true, [CT.stringCT], CT.numberCT);
-  const wrapped = fn.wrap((x) => Number.parseInt(x, 10));
-  wrapped.randomTest();
-}
-{
-  const fn = CT.CTFunction(true, [CT.stringCT], CT.numberCT);
-  const wrapped = fn.wrap((x) => 'NOT_A_NUMBER');
-  assert.throws(() => wrapped.randomTest(), "Random test should fail");
-}
-{
+  const domain = [{ contract: CT.stringCT, dotdotdot: true }];
   const fn = CT.CTRec(() => {
-    return CT.CTFunction(true, [CT.stringCT], CT.numberCT);
+    return CT.CTFunction(true, domain, CT.numberCT);
   })
-  const wrapped = fn.wrap((x) => Number.parseInt(x, 10));
-  wrapped.randomTest();
+  assert.ok(domain === fn.domain);
 }
 {
+  const domain = [{ contract: CT.stringCT, dotdotdot: true }];
   const fn = CT.CTAnd(
-    CT.CTFunction(true, [CT.stringCT], CT.numberCT),
-    CT.CTFunction(true, [CT.stringCT], CT.numberCT),
+    CT.CTFunction(true, domain, CT.numberCT),
+    CT.CTFunction(true, domain, CT.numberCT),
   );
-  const wrapped = fn.wrap((x) => Number.parseInt(x, 10));
-  wrapped.randomTest();
+  assert.ok(fn.domain === domain);
 }
 {
+  const domain = [{ contract: CT.stringCT, dotdotdot: true }];
   const fn = CT.CTOr(
-    CT.CTFunction(true, [CT.stringCT], CT.numberCT),
-    CT.CTFunction(true, [CT.stringCT], CT.numberCT),
+    CT.CTFunction(true, domain, CT.numberCT),
+    CT.CTFunction(true, domain, CT.numberCT),
   );
-  const wrapped = fn.wrap((x) => Number.parseInt(x, 10));
-  wrapped.randomTest();
+  assert.ok(fn.domain === domain);
 }
 {
-  const fn = CT.CTOr(
-    CT.CTFunction(true, [CT.stringCT], CT.numberCT),
-    CT.CTFunction(true, [CT.stringCT], CT.numberCT),
-  );
-  const wrapped = fn.wrap((x) => 'NOT_A_NUMBER');
-  assert.throws(() => wrapped.randomTest());
+  const ct = CT.CTFunction(true, [CT.stringCT], CT.numberCT);
+  const fn = ct.generate();
+  CT.randomTest(fn, ct);
 }
 {
-  const fn = CT.CTFunction(true, [{ contract: CT.stringCT, dotdotdot: true }], CT.numberCT);
-  const wrapped = fn.wrap((...args) => Number.parseInt(args[0] || '10', 10));
-  wrapped.randomTest();
+  const ct = CT.CTFunction(true, [CT.stringCT], CT.numberCT);
+  const fnBase = () => 3;
+  const fn = ct.wrap(fnBase);
+  CT.randomTest(fn, ct);
+}
+{
+  const ct = CT.CTFunction(true, [CT.stringCT], CT.numberCT);
+  const fnBase = () => 'NOT A NUMBER';
+  const fn = ct.wrap(fnBase);
+  assert.throws(() => { CT.randomTest(fn, ct) });
 }
 console.log('All tests are currently passing!');

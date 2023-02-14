@@ -10,6 +10,12 @@
 /*=====================================================================*/
 "use strict";
 "use hopscript";
+/*---------------------------------------------------------------------*/
+/*    Pick Random                                                      */
+/*---------------------------------------------------------------------*/
+const pickRandom = (arr) => {
+  return arr[Math.floor(Math.random() * arr.length)];
+};
 
 /*---------------------------------------------------------------------*/
 /*    ContractError                                                    */
@@ -19,6 +25,13 @@ class ContractError extends TypeError {}
 /*---------------------------------------------------------------------*/
 /*    CT                                                               */
 /*---------------------------------------------------------------------*/
+
+/**
+ * Keys: Instances of contracts.
+ * Values: A list of things produced that satisfy the contract.
+ */
+const RANDOM_TESTING_CONTRACT_MAP = new Map();
+
 class CT {
   constructor(name, firstOrder, wrapper, generator) {
     this.cache = {};
@@ -34,7 +47,20 @@ class CT {
 
   generate = () => {
     if (typeof this.generator === "function") {
-      return this.generator();
+      const shouldUseGeneratedValue = Math.random() > 0.5;
+      const haveGeneratedValues = Array.isArray(
+        RANDOM_TESTING_CONTRACT_MAP.get(this)
+      );
+      if (shouldUseGeneratedValue && haveGeneratedValues) {
+        return pickRandom(RANDOM_TESTING_CONTRACT_MAP.get(this));
+      }
+      const res = this.generator();
+      if (haveGeneratedValues) {
+        RANDOM_TESTING_CONTRACT_MAP.get(this).push(res);
+      } else {
+        RANDOM_TESTING_CONTRACT_MAP.set(this, [res]);
+      }
+      return res;
     }
     return true;
   };
@@ -44,20 +70,6 @@ class CT {
       new_blame_object(locationt, locationf)
     );
     const res = tval.ctor(value);
-
-    if (typeof this.generateDomainForRandomTest === "function") {
-      res.randomTest = () => {
-        try {
-          const domain = this.generateDomainForRandomTest();
-          return res(...domain);
-        } catch (err) {
-          console.error(err);
-          if (err instanceof ContractError) {
-            throw err;
-          }
-        }
-      };
-    }
     return res;
   }
 }
@@ -325,15 +337,16 @@ function CTFunction(self, domain, range) {
       };
     }
   );
+  ct.domain = domain;
   ct.generateDomainForRandomTest = () => {
     const randomDomain = domain.map((contract) => {
       if (contract.generate) {
         return contract.generate();
       } else if ("contract" in contract && "dotdotdot" in contract) {
         const arraySize = Math.floor(Math.random() * 10) + 1;
-        return Array.from({ length: arraySize }).map(() =>
-          contract["contract"].generate()
-        );
+        return Array.from({ length: arraySize }).map(() => {
+          return contract["contract"].generate();
+        });
       } else if ("contract" in contract) {
         return contract["contract"].generate();
       } else {
@@ -675,6 +688,14 @@ function CTRec(thunk) {
       }
     },
   });
+  Object.defineProperty(ct, "domain", {
+    get() {
+      const ct = mthunk();
+      if (ct.domain) {
+        return ct.domain;
+      }
+    },
+  });
   return ct;
 }
 
@@ -684,9 +705,15 @@ const insertGeneratorForRandomBranchOfUnion = (ct, args) => {
   );
   if (allHaveDomain) {
     ct.generateDomainForRandomTest = () => {
-      const aDomain = args[Math.floor(Math.random() * args.length)];
+      const aDomain = pickRandom(args);
       return aDomain.generateDomainForRandomTest();
     };
+    Object.defineProperty(ct, "domain", {
+      get() {
+        const aCt = args[Math.floor(Math.random() * args.length)];
+        return aCt.domain;
+      },
+    });
   }
 };
 
@@ -1298,6 +1325,15 @@ function throw_contract_violation(pos, message, value) {
 }
 
 /*---------------------------------------------------------------------*/
+/*    random tests ...                                                 */
+/*---------------------------------------------------------------------*/
+function randomTest(wrapped, contract) {
+  if (typeof contract.generateDomainForRandomTest === 'function') {
+    wrapped(...contract.generateDomainForRandomTest());
+  }
+}
+
+/*---------------------------------------------------------------------*/
 /*    predicates ...                                                   */
 /*---------------------------------------------------------------------*/
 function isObject(o) {
@@ -1417,6 +1453,7 @@ exports.isString = isString;
 exports.isBoolean = isBoolean;
 exports.isNumber = isNumber;
 exports.True = True;
+exports.randomTest = randomTest;
 
 // exported for the test suite only
 exports.__topsort = topsort;
@@ -1439,3 +1476,4 @@ function CTimports(obj, location) {
 exports.CTexports = CTexports;
 exports.CTimports = CTimports;
 exports.disableContracts = disableContracts;
+exports.ContractError = ContractError;

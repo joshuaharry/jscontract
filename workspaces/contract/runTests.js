@@ -1,3 +1,5 @@
+const CT = require('@jscontract/contract');
+
 const testableExports = [];
 
 const findTestableExports = (objectOrFunction, name) => {
@@ -28,6 +30,5 @@ console.log("Starting random tests...");
 while (true) {
   for (const { name, fn } of testableExports) {
     console.log(`Testing ${name}...`);
-    fn.randomTest();
   }
 }

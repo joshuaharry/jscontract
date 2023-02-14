@@ -310,14 +310,14 @@ const tokenMap = {
             {
                 name,
                 type: {
-                    hint: 'flat',
+                    hint: "flat",
                     syntax: t.tsAnyKeyword(),
                 },
                 typeToMark: null,
                 isSubExport: false,
                 isMainExport: false,
                 existsInJs: true,
-            }
+            },
         ];
     },
     TSModuleDeclaration(el) {
@@ -379,9 +379,18 @@ const tokenMap = {
         return [{ ...statement, isSubExport: statement.existsInJs }];
     },
     ExportDefaultDeclaration(el) {
-        if (el.declaration.type !== 'Identifier')
+        if (el.declaration.type !== "Identifier")
             return [];
-        return [{ type: null, existsInJs: true, isSubExport: false, isMainExport: true, name: el.declaration.name, typeToMark: null }];
+        return [
+            {
+                type: null,
+                existsInJs: true,
+                isSubExport: false,
+                isMainExport: true,
+                name: el.declaration.name,
+                typeToMark: null,
+            },
+        ];
     },
     VariableDeclaration(el) {
         if (el.declarations.length !== 1)
@@ -554,10 +563,59 @@ const getSubExport = (node) => template_1.default.statement(`module.exports.%%na
     name: node.name,
     contract: getContractName(node.name),
 });
+const getSubTest = (node) => template_1.default.statement(`__RANDOM_TEST_ARRAY__.push(() => {
+      CT.randomTest(module.exports.%%name%%, %%contract%%)
+    });`)({
+    name: node.name,
+    contract: getContractName(node.name),
+});
 const exportContracts = (nodes) => {
     const moduleExports = getModuleExports(nodes);
     const subExports = nodes.filter((node) => node.isSubExport).map(getSubExport);
     return [moduleExports, ...subExports];
+};
+const setupTestArray = () => {
+    return template_1.default.statement(`const %%randomTestArray%% = [];`)({
+        randomTestArray: "__RANDOM_TEST_ARRAY__",
+    });
+};
+const getMainTest = (nodes) => {
+    const mainExport = nodes.find((node) => node.isMainExport);
+    return mainExport
+        ? template_1.default.statement(`__RANDOM_TEST_ARRAY__.push(() => {
+          CT.randomTest(module.exports, %%contract%%)
+        });`)({
+            contract: getContractName(mainExport.name),
+        })
+        : template_1.default.statement(`;`)({});
+};
+const getSubTests = (nodes) => {
+    const subExports = nodes.filter((node) => node.isSubExport).map(getSubTest);
+    return subExports;
+};
+const getRunTestsIfMain = () => {
+    return template_1.default.statement(`if (require.main === module) {
+    while (true) {
+      for (const randomTest of %%array%%) {
+        try {
+          randomTest();
+        } catch (err) {
+          if (!(err instanceof CT.ContractError)) {
+            console.error(err);
+          } else {
+            throw err;
+          }
+        }
+      }
+    }
+  }`)({ array: "__RANDOM_TEST_ARRAY__" });
+};
+const includeRandomTests = (nodes) => {
+    const setup = setupTestArray();
+    const mainTest = getMainTest(nodes);
+    const subTests = getSubTests(nodes);
+    const runTestsIfMain = getRunTestsIfMain();
+    return [setup, mainTest, ...subTests, runTestsIfMain];
 };
 // }}}
 // Map Node to Contract {{{
@@ -731,7 +789,9 @@ const makeReduceNode = (env) => {
     };
     const makeRestParameter = (rest) => {
         if (rest.type !== "TSArrayType")
-            return template_1.default.expression(`{ contract: CT.anyCT, dotdotdot: true }`)({ CT: t.identifier("CT") });
+            return template_1.default.expression(`{ contract: CT.anyCT, dotdotdot: true }`)({
+                CT: t.identifier("CT"),
+            });
         return template_1.default.expression(`{ contract: %%contract%%, dotdotdot: true }`)({
             contract: mapFlat(rest.elementType),
         });
@@ -846,6 +906,7 @@ const getContractAst = (graph) => {
         ...produceIdentifiers(statements),
         ...compileTypes(statements, graph),
         ...exportContracts(statements),
+        ...includeRandomTests(statements),
     ];
     return ast;
 };
@@ -860,10 +921,13 @@ const DEFAULT_OPTIONS = {
     fileName: "index.d.ts",
     language: "typescript",
 };
-const compileContracts = (options = DEFAULT_OPTIONS) => compile({
-    language: options.language,
-    code: readTypesFromFile(options.fileName),
-});
+const compileContracts = (options = DEFAULT_OPTIONS) => {
+    const res = compile({
+        language: options.language,
+        code: readTypesFromFile(options.fileName),
+    });
+    return res;
+};
 exports.default = compileContracts;
 // }}}
 if (require.main === module) {
